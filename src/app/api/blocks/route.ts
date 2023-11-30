@@ -6,7 +6,7 @@
  * The route to download the block info
  */
 
-export async function GET() {
+export const GET = async () => {
    const apiResp: APIBlocks = {
       blockSize: 60,
       blocks: [

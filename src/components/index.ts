@@ -13,5 +13,6 @@ import NavUserMenu from './NavUserMenu';
 import Scrubber from './Scrubber';
 import SessionProvider from './SessionProvider';
 import ThumbnailBlock from './ThumbnailBlock';
+import ThumbnailImage from './ThumbnailImage';
 
-export { AppDrawer, Gallery, NavBar, NavUserMenu, Scrubber, SessionProvider, ThumbnailBlock };
+export { AppDrawer, Gallery, NavBar, NavUserMenu, Scrubber, SessionProvider, ThumbnailBlock, ThumbnailImage };
