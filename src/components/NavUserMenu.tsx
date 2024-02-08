@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2023 Josef Barnes
  *
- * The dropdown menu for the user in the nav bar
+ * The dropdown menu for the user on the right of the navigation bar
  */
 'use client';
 
