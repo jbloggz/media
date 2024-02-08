@@ -6,6 +6,9 @@
  * index.ts: This file exports all the components
  */
 
+import AppDrawer from './AppDrawer';
 import NavBar from './NavBar';
+import NavUserMenu from './NavUserMenu';
+import SessionProvider from './SessionProvider';
 
-export { NavBar };
+export { AppDrawer, NavBar, NavUserMenu, SessionProvider };
