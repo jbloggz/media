@@ -50,7 +50,7 @@ const Gallery = (props: APIBlocks) => {
        * position properly when you add content above you. So move down 1px.
        */
       mainElem.scrollTop = 1;
-      setBlockRange({ blockStart: idx, itemStart: 0, blockEnd: idx + 1, itemEnd: props.blockSize });
+      setBlockRange({ blockStart: idx, itemStart: 0, blockEnd: idx + 1, itemEnd: props.blocks[idx].count });
    };
 
    /* Helper function for bounded incrementing by an interval */
@@ -120,11 +120,11 @@ const Gallery = (props: APIBlocks) => {
             }
             itemEnd = nextInterval(itemEnd, props.blockSize, props.blocks[blockEnd - 1].count);
          }
-
-         if (scrollTop < addBlockThreshold) {
+         else if (scrollTop < addBlockThreshold) {
             /*
              * We are getting too close to the top, so need more items added to
-             * the start.
+             * the start. This is an else-if because we only want to add blocks
+             * to the top after we have finished adding blocks to the bottom.
              */
             if (itemStart === 0 && blockStart > 0) {
                blockStart -= 1;
