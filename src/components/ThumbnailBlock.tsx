@@ -12,7 +12,6 @@ import { ThumbnailImage } from '.';
 interface ThumbnailBlockProps {
    className?: string;
    heading: string;
-   showHeading: boolean;
    start: number;
    end: number;
 }

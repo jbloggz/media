@@ -24,7 +24,8 @@ const authOptions: AuthOptions = {
       }),
    ],
    callbacks: {
-      signIn: async (params) => (process.env.ALLOWED_DOMAIN && params.profile?.email?.endsWith(process.env.ALLOWED_DOMAIN) ? true : false),
+      signIn: async (params) =>
+         process.env.ALLOWED_LOGIN_DOMAIN && params.profile?.email?.endsWith(process.env.ALLOWED_LOGIN_DOMAIN) ? true : false,
       redirect: async ({ baseUrl }) => baseUrl,
    },
    pages: {
