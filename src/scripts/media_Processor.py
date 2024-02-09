@@ -10,12 +10,12 @@
 Image processor and indexer.
 This process has the job of indexing a directory and inserting the media
 metadata into the postgres database. It gets the connection information
-for the database from the env file passed in to the -e flag. Te following
+for the database from the env file passed in to the -e flag. The following
 must be set in the env file:
 
 PGHOST - host of the postgres database
 PGUSER - The user to connect as
-PGDATABASE - THe database to connect to
+PGDATABASE - The database to connect to
 '''
 
 import os
@@ -33,6 +33,7 @@ import binascii
 from pathlib import Path
 from typing import Optional, Dict, List, Set
 import psycopg
+import ffmpeg
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -43,24 +44,24 @@ SHA256_CHUNK_SIZE = 1000000
 
 
 class FileMetadata(BaseModel):
-    path: str
-    type: str
-    timestamp: int = 0
-    size: int = 0
-    width: int = 0
-    height: int = 0
-    duration: int | None = None
-    latitude: int | None = None
-    longitude: int | None = None
-    make: str | None = None
-    model: str | None = None
-    sha256: str = ''
+    path: str                       # Path of the file on disk
+    type: str                       # media type (either image or video)
+    timestamp: int                  # When the file was created
+    size: int                       # Size in bytes
+    width: int = 0                  # Width in pixels
+    height: int = 0                 # Height in pixels
+    duration: int | None = None     # Duration in milliseconds (for videos)
+    latitude: int | None = None     # Latitude in degrees (-90 -> 90)
+    longitude: int | None = None    # Longitude in degrees (-180 -> 180)
+    make: str | None = None         # Make of the deivce that created the file
+    model: str | None = None        # Model of the device that created the file
+    sha256: str = ''                # SHA256 checksum of the file
 
 
 class Result(BaseModel):
-    processed: int = 0
-    skipped: int = 0
-    failed: int = 0
+    processed: int = 0  # Number of files processed and inserted
+    skipped: int = 0    # Number of files that didn't need to be processed
+    failed: int = 0     # Number of files that failed to process
 
 
 class Lock:
@@ -69,17 +70,38 @@ class Lock:
     '''
 
     def __init__(self, db: psycopg.Cursor):
+        '''
+        Constructor
+
+        Args:
+            db: An opened postgres cursor
+        '''
         self.db = db
         self.lock_id = 293841  # A random umber that is unique
         self.locked = False
 
     def __enter__(self):
+        '''
+        Entry function for 'with'. Acquires a lock
+        '''
         self.acquire()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        '''
+        Exit function for 'with'. Releases the held lock
+        '''
         self.release()
 
     def acquire(self) -> bool:
+        '''
+        Acquire the lock
+
+        Raises:
+            ValueError: If the lock cannot be acquired
+
+        Returns:
+            True if the lock can be acquired
+        '''
         resp = self.db.execute(f'SELECT pg_try_advisory_lock({self.lock_id})').fetchone()
         self.locked = resp[0] is True
         if not self.is_locked():
@@ -87,10 +109,19 @@ class Lock:
         return self.is_locked()
 
     def release(self):
+        '''
+        Release a held lock. No op if lock not held
+        '''
         self.db.execute(f'SELECT pg_advisory_unlock({self.lock_id})')
         self.locked = False
 
     def is_locked(self) -> bool:
+        '''
+        Check if lock is held
+
+        Returns:
+            True if the lock is help, false if not
+        '''
         return self.locked
 
 
@@ -99,15 +130,30 @@ class Progress:
     A class to represent the progress of this process
     '''
 
-    def __init__(self, db: psycopg.Cursor):
+    def __init__(self, db: psycopg.Cursor, interval: int):
+        '''
+        Constructor
+
+        Args:
+            db: An opened postgres cursor
+            interval: The interval to force an update to the db
+        '''
         self.db = db
+        self.interval = interval
         self.last_time = 0
         self.last_state = ''
         self.update('initlialising')
 
     def update(self, state: str, data: Dict[str, str | int] = None):
-        if time.time() - self.last_time < 10 and state == self.last_state:
-            # It's been less than 10s, and the state hasn't changed, so do nothing
+        '''
+        Update the progress of the process
+
+        Args:
+            state: The current state
+            data: Context about the progress. Defaults to None.
+        '''
+        if time.time() - self.last_time < self.interval and state == self.last_state:
+            # It's been less than interval seconds, and the state hasn't changed, so do nothing
             return
         self.last_time = time.time()
         self.last_state = state
@@ -121,6 +167,13 @@ class Progress:
 
 
 def deep_update(mapping: Dict, *updating_mappings: Dict):
+    '''
+    Update a dict recursively
+
+    Args:
+        mapping: The dict to update
+        *updating_mappings: The parts of the dict to update
+    '''
     for updating_mapping in updating_mappings:
         for k, v in updating_mapping.items():
             if k in mapping and isinstance(mapping[k], dict) and isinstance(v, dict):
@@ -130,6 +183,12 @@ def deep_update(mapping: Dict, *updating_mappings: Dict):
 
 
 def calculate_sha256(file: FileMetadata):
+    '''
+    Calculate a SHA256 checksum of a file
+
+    Args:
+        file: The file to create the checksum
+    '''
     sha256 = hashlib.sha256()
     with open(file.path, "rb") as fp:
         # Process in chunks of 4kB
@@ -139,10 +198,26 @@ def calculate_sha256(file: FileMetadata):
 
 
 def decode_exif_timestamp(exif_time: str) -> int:
+    '''
+    COnvert a string exif formatted timestamp to unix epock seconds
+
+    Args:
+        exif_time: The exit timestamp
+
+    Returns:
+        A unix epoch timestamp
+    '''
     return int(datetime.datetime.strptime(exif_time, "%Y:%m:%d %H:%M:%S").timestamp())
 
 
 def insert_media(db: psycopg.Cursor, media: List[FileMetadata]):
+    '''
+    Insert the file metadata into the database
+
+    Args:
+        db: An opened postgres cursor
+        media: The list of files to insert
+    '''
     if not media:
         return
     header = FileMetadata.__annotations__.keys()
@@ -151,7 +226,31 @@ def insert_media(db: psycopg.Cursor, media: List[FileMetadata]):
             copy.write_row(list(file.dict().values()))
 
 
+def load_video_metadata(file: FileMetadata):
+    '''
+    Load the metadata for a video file using ffmpeg
+
+    Args:
+        file: The file to load the metadata
+    '''
+    probe = ffmpeg.probe(file.path)
+    video_info = next(s for s in probe['streams'] if s['codec_type'] == 'video')
+    file.width = int(video_info['width'])
+    file.height = int(video_info['height'])
+    file.duration = int(float(video_info['duration']) * 1000)
+
+
 def decode_exif(data, key=None):
+    '''
+    Recursively decode exif metadata
+
+    Args:
+        data: The exif node
+        key: The key for this node, if it's parent is a map. Defaults to None.
+
+    Returns:
+        The decoded exif node
+    '''
     tags = GPSTAGS if key == 'GPSInfo' else TAGS
     if isinstance(data, Image.Exif):
         res = {}
@@ -181,7 +280,13 @@ def decode_exif(data, key=None):
     return data
 
 
-def load_exif_data(file: FileMetadata):
+def load_image_metadata(file: FileMetadata):
+    '''
+    Load the metadata for a image file using ffmpeg
+
+    Args:
+        file: The file to load the metadata
+    '''
     img = Image.open(file.path)
     file.width = img.size[0]
     file.height = img.size[1]
@@ -231,49 +336,107 @@ def load_exif_data(file: FileMetadata):
 
 
 def get_existing_media(db: psycopg.Cursor) -> Set[Path]:
+    '''
+    Get a list of all existing files added to the database
+
+    Args:
+        db: An opened postgres cursor
+
+    Returns:
+        A list of file paths that exist in the database
+    '''
     db.execute('SELECT path FROM media')
     return {Path(row[0]) for row in db.fetchall()}
 
 
-def process_file(file_path: Path) -> Optional[FileMetadata]:
+def validate_file(file: FileMetadata):
     '''
-    _summary_
+    Validate that a file has all the necessary fields set
 
-    _extended_summary_
+    Raises:
+        ValueError: If the validation fails
 
     Args:
-        db: _description_
-        file_path: _description_
+        file: The file to validate
+    '''
+    if not Path(file.path).exists():
+        raise ValueError(f'Validation failed: file does not exist: {file.path}')
+    if file.type not in ['video', 'image']:
+        raise ValueError(f'Validation failed: Invalid type of {file.type}: {file.path}')
+    if not isinstance(file.timestamp, int) or file.timestamp == 0:
+        raise ValueError(f'Validation failed: invalid timestamp of {file.timestamp}: {file.path}')
+    if not isinstance(file.size, int) or file.size == 0:
+        raise ValueError(f'Validation failed: invalid size of {file.size}: {file.path}')
+    if not isinstance(file.width, int) or file.width == 0:
+        raise ValueError(f'Validation failed: invalid width of {file.width}: {file.path}')
+    if not isinstance(file.height, int) or file.height == 0:
+        raise ValueError(f'Validation failed: invalid length of {file.hight}: {file.path}')
+    if file.type == 'video' and (not isinstance(file.duration, int) or file.duration == 0):
+        raise ValueError(f'Validation failed: Invalid video duration of {file.duration}: {file.path}')
+    if file.type == 'image' and file.duration is not None:
+        raise ValueError(f'Validation failed: Duration must not be set for images: {file.duration}: {file.path}')
+    if not (file.latitude is None or ((isinstance(file.latitude, int) or isinstance(file.latitude, float)) and file.latitude > 0)):
+        raise ValueError(f'Validation failed: Invalid latitude of {file.latitude}: {file.path}')
+    if not (file.latitude is None or ((isinstance(file.latitude, int) or isinstance(file.latitude, float)) and file.latitude > 0)):
+        raise ValueError(f'Validation failed: Invalid longitude of {file.longitude}: {file.path}')
+    if file.make is not None and (not isinstance(file.make, str) or file.make == ''):
+        raise ValueError(f'Validation failed: Invalid make of {file.make}: {file.path}')
+    if file.model is not None and (not isinstance(file.model, str) or file.model == ''):
+        raise ValueError(f'Validation failed: Invalid model of {file.model}: {file.path}')
+    if not isinstance(file.sha256, str) or len(file.sha256) != 64:
+        raise ValueError(f'Validation failed: Invalid sha256 of {file.sha256}: {file.path}')
+
+
+def process_file(file_path: Path) -> Optional[FileMetadata]:
+    '''
+    Process a file and load its metadata
+
+    Args:
+        file_path: Path of the file to process
 
     Returns:
-        _description_
+        The processed files metadata
     '''
     mime_type = mimetypes.guess_type(file_path)[0]
     if mime_type is None:
         logging.warning(f'Skipping unsupported file: {file_path}')
         return None
 
-    file = FileMetadata(path=str(file_path), type=mime_type)
+    stats = os.stat(file_path)
+    file = FileMetadata(path=str(file_path), type=mime_type, timestamp=int(stats.st_mtime), size=stats.st_size)
 
     if mime_type.startswith('image'):
-        stats = os.stat(file_path)
         file.type = 'image'
-        file.timestamp = int(stats.st_mtime)
-        file.size = stats.st_size
-        load_exif_data(file)
+        load_image_metadata(file)
+    elif mime_type.startswith('video'):
+        file.type = 'video'
+        load_video_metadata(file)
     else:
-        # HANDLE VIDEO
-        logging.warning(f'Skipping unsupported file: {file_path}')
+        logging.warning(f'Skipping unsupported file of mime type {mime_type}: {file_path}')
         return None
 
     calculate_sha256(file)
+
+    validate_file(file)
 
     return file
 
 
 def index_directory(args: argparse.Namespace, db: psycopg.Cursor, path: Path) -> Result:
+    '''
+    Process all the files in the provided directory
+
+    Args:
+        args: Command line arguments
+        db: An opened postgres cursor
+        path: The directory to search
+
+    Returns:
+        The counts of processed, skipped and failed files in the directory
+    '''
     logging.info(f'Indexing {path}')
     res = Result()
+    progress = Progress(db, args.progress_update)
     existing_files = get_existing_media(db)
     files = [f for f in path.rglob('*') if f.is_file()]
     to_process = [f for f in files if f not in existing_files]
@@ -283,22 +446,36 @@ def index_directory(args: argparse.Namespace, db: psycopg.Cursor, path: Path) ->
 
     processed: List[FileMetadata] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.ncpu) as executor:
-        futures = [executor.submit(process_file, file) for file in to_process]
+        futures = {executor.submit(process_file, path): path for path in to_process}
         for future in concurrent.futures.as_completed(futures):
             try:
+                path = futures[future]
                 file = future.result()
                 if file:
                     res.processed += 1
                     processed.append(file)
                 else:
                     res.skipped += 1
-            except Exception as e:
-                logging.error(f'Unable to process {file.path}: {e}')
+            except:
+                logging.exception(f'Unable to process {path}')
                 res.failed += 1
+
+            progress.update('processing', {
+                'processed': res.processed,
+                'skipped': res.skipped,
+                'failed': res.failed,
+                'total': len(to_process)
+            })
 
     insert_media(db, processed)
 
     logging.info(f'Processed: {res.processed}, skipped: {res.skipped}, failed: {res.failed}')
+    progress.update('complete', {
+        'processed': res.processed,
+        'skipped': res.skipped,
+        'failed': res.failed,
+        'total': len(to_process)
+    })
     return res
 
 
@@ -318,12 +495,10 @@ def set_log_level(level):
 
 def init_logging(args: argparse.Namespace):
     '''
-    _summary_
-
-    _extended_summary_
+    Setup the logging
 
     Args:
-        args: _description_
+        args: Command line arguments
     '''
     logger = logging.getLogger()
     set_log_level(logging.DEBUG if args.debug else logging.INFO)
@@ -347,21 +522,21 @@ def init_logging(args: argparse.Namespace):
 
 def parse_args():  # pragma: no cover
     '''
-    _summary_
-
-    _extended_summary_
+    Parse the command line arguments
 
     Returns:
-        _description_
+        The parsed arguments
     '''
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug logging')
-    parser.add_argument('-n', '--ncpu', type=int, help='Number of threads to run')
     parser.add_argument('-e', '--env', required=True, type=str, help='Path to .env file')
     parser.add_argument('-l', '--log-file', type=str, help='Path to log file')
+    parser.add_argument('-n', '--ncpu', type=int, default=2, help='Number of threads to run')
+    parser.add_argument('-p', '--path', type=str, help='Process a path and exit')
+    parser.add_argument('-u', '--progress-update', type=int, default=3, help='Progress update interval')
 
     args = parser.parse_args()
 
@@ -380,6 +555,14 @@ def main(args: argparse.Namespace):  # pragma: no cover
     if args.env:
         load_dotenv(args.env)
 
+    # If a path was supplied, run a single process on that path
+    if args.path:
+        with psycopg.connect(autocommit=True) as conn:
+            with conn.cursor() as cur:
+                with Lock(cur):
+                    index_directory(args, cur, Path(args.path))
+        return 0
+
     # Loop forever connecting to the database and listening for notifications
     while True:
         try:
@@ -388,7 +571,7 @@ def main(args: argparse.Namespace):  # pragma: no cover
                     cur.execute('LISTEN index')
                     logging.info('Connected to db. Listening...')
                     for notify in conn.notifies():
-                        with Lock(cur), conn.transaction():
+                        with Lock(cur):
                             index_directory(args, cur, Path(notify.payload))
         except KeyboardInterrupt:
             break
@@ -400,5 +583,5 @@ def main(args: argparse.Namespace):  # pragma: no cover
 if __name__ == '__main__':  # pragma: no cover
     try:
         sys.exit(main(parse_args()))
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-except
         logging.exception(exc, exc_info=True)
