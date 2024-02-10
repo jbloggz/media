@@ -568,7 +568,7 @@ def main(args: argparse.Namespace):  # pragma: no cover
         try:
             with psycopg.connect(autocommit=True) as conn:
                 with conn.cursor() as cur:
-                    cur.execute('LISTEN index')
+                    cur.execute('LISTEN media_processor')
                     logging.info('Connected to db. Listening...')
                     for notify in conn.notifies():
                         with Lock(cur):
