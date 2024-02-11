@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS media (
    longitude   REAL DEFAULT NULL,    -- in degrees
    make        TEXT DEFAULT NULL,    -- make of the camera (NULL if unknown or N/A)
    model       TEXT DEFAULT NULL,    -- model of the camera (NULL if unknown or N/A)
-   sha256      TEXT NOT NULL         -- SHA256 checksum for the file
+   sha256      TEXT NOT NULL,        -- SHA256 checksum for the file
+   thumbnail   BYTEA NOT NULL        -- Thumbnail of the media
 );
 CREATE INDEX IF NOT exists media_path_idx ON media(path);
 CREATE INDEX IF NOT exists media_type_idx ON media(type);
@@ -28,12 +29,20 @@ CREATE INDEX IF NOT exists media_timestamp_idx ON media(timestamp);
 CREATE INDEX IF NOT exists media_camera_idx ON media(make, model);
 
 /* A table for caching the blocks of media files */
-CREATE TABLE IF NOT EXISTS blocks (
+CREATE TABLE IF NOT EXISTS block (
    id          SERIAL8 PRIMARY KEY,
-   name        TEXT NOT NULL,        -- name of the block
+   heading     TEXT NOT NULL,        -- name of the block
    count       INT4 NOT NULL,        -- number of files in the block
    total       INT4 NOT NULL         -- total files in this an all previous blocks
 );
+
+/* Mapping of thumbnails to their block position */
+CREATE TABLE IF NOT EXISTS media_position (
+   media       INT8 NOT NULL REFERENCES media(id),     -- media id
+   block       INT4 NOT NULL REFERENCES block(id),     -- block id
+   position    INT4 NOT NULL                           -- offset within the block
+);
+CREATE INDEX IF NOT exists media_position_index ON media_position(block, position);
 
 /* A table for storing running processes and progress */
 CREATE TABLE IF NOT EXISTS progress (

@@ -16,12 +16,15 @@ must be set in the env file:
 PGHOST - host of the postgres database
 PGUSER - The user to connect as
 PGDATABASE - The database to connect to
+TIMEZONE - Name of the timezone to use
 '''
 
 import os
+import io
 import sys
 import time
 import json
+import calendar
 import argparse
 import signal
 import mimetypes
@@ -31,16 +34,15 @@ import concurrent.futures
 import datetime
 import binascii
 from pathlib import Path
-from typing import Optional, Dict, List, Set
+from typing import Optional, Dict, List
+import pytz
 import psycopg
 import ffmpeg
+import av
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from PIL.ExifTags import TAGS, GPSTAGS
 from PIL import Image, TiffImagePlugin
-
-
-SHA256_CHUNK_SIZE = 1000000
 
 
 class FileMetadata(BaseModel):
@@ -56,6 +58,7 @@ class FileMetadata(BaseModel):
     make: str | None = None         # Make of the deivce that created the file
     model: str | None = None        # Model of the device that created the file
     sha256: str = ''                # SHA256 checksum of the file
+    thumbnail: bytes = b''          # Thumbnail of the file
 
 
 class Result(BaseModel):
@@ -197,6 +200,30 @@ def calculate_sha256(file: FileMetadata):
     file.sha256 = sha256.hexdigest()
 
 
+def generate_thumbnail(file: FileMetadata):
+    '''
+    Generate a thumbnail for a media file
+
+    Args:
+        file: The file to generate the thumb
+    '''
+    if file.type == 'image':
+        img = Image.open(file.path)
+    elif file.type == 'video':
+        frames = av.open(file.path).decode(video=0)
+        img = next(frames).to_image()
+    else:
+        raise TypeError(f'Invalid file type for {file.path}: {file.type}')
+
+    size = min(img.width, img.height)
+    box = ((img.width) // 2, (img.height - size) // 2, (img.width + size) // 2, (img.height + size) // 2)
+    cropped = img.crop(box)
+    cropped.thumbnail((256, 256))
+    thumb = io.BytesIO()
+    cropped.save(thumb, format='JPEG')
+    file.thumbnail = thumb.getvalue()
+
+
 def decode_exif_timestamp(exif_time: str) -> int:
     '''
     COnvert a string exif formatted timestamp to unix epock seconds
@@ -335,18 +362,56 @@ def load_image_metadata(file: FileMetadata):
             file.longitude = lng[0] + lng[1] / 60 + (lng[2] / 3600) * lng_sign
 
 
-def get_existing_media(db: psycopg.Cursor) -> Set[Path]:
+def get_existing_media(db: psycopg.Cursor) -> Dict[Path, int]:
     '''
-    Get a list of all existing files added to the database
+    Get a all existing files in the database
 
     Args:
         db: An opened postgres cursor
 
     Returns:
-        A list of file paths that exist in the database
+        A map of the files to their timestamps that exist in the database
     '''
-    db.execute('SELECT path FROM media')
-    return {Path(row[0]) for row in db.fetchall()}
+    db.execute('SELECT id,path,timestamp FROM media ORDER BY timestamp DESC')
+    return {Path(row[1]): {
+        'id': row[0],
+        'timestamp': row[2]
+    } for row in db.fetchall()}
+
+
+def insert_blocks(db: psycopg.Cursor):
+    '''
+    Create all the blocks for the current database
+
+    Args:
+        db: An opened postgres cursor
+    '''
+    existing_media = get_existing_media(db)
+    buckets: List[Dict] = []
+    tz = pytz.timezone(os.environ['TIMEZONE'])
+    for media in existing_media.values():
+        dt = datetime.datetime.fromtimestamp(media['timestamp']).astimezone(tz)
+        heading = f'{calendar.month_name[dt.month]} {dt.year}'
+        if not buckets or buckets[-1]['heading'] != heading:
+            buckets.append({
+                'heading': heading,
+                'media': []
+            })
+        buckets[-1]['media'].append(media['id'])
+
+    total = 0
+    db.execute('DELETE FROM block')
+    with db.copy(f'COPY block (id,heading,count,total) FROM STDIN') as copy:
+        for idx, bucket in enumerate(buckets):
+            count = len(bucket['media'])
+            total += count
+            copy.write_row([idx + 1, bucket['heading'], count, total])
+
+    db.execute('DELETE FROM media_position')
+    with db.copy(f'COPY media_position (media,block,position) FROM STDIN') as copy:
+        for idx, bucket in enumerate(buckets):
+            for pos, media in enumerate(bucket['media']):
+                copy.write_row([media, idx + 1, pos])
 
 
 def validate_file(file: FileMetadata):
@@ -385,6 +450,8 @@ def validate_file(file: FileMetadata):
         raise ValueError(f'Validation failed: Invalid model of {file.model}: {file.path}')
     if not isinstance(file.sha256, str) or len(file.sha256) != 64:
         raise ValueError(f'Validation failed: Invalid sha256 of {file.sha256}: {file.path}')
+    if not isinstance(file.thumbnail, bytes) or len(file.thumbnail) == 0:
+        raise ValueError(f'Validation failed: Invalid thumbnail of {file.thumbnail}: {file.path}')
 
 
 def process_file(file_path: Path) -> Optional[FileMetadata]:
@@ -416,6 +483,8 @@ def process_file(file_path: Path) -> Optional[FileMetadata]:
         return None
 
     calculate_sha256(file)
+
+    generate_thumbnail(file)
 
     validate_file(file)
 
@@ -467,7 +536,9 @@ def index_directory(args: argparse.Namespace, db: psycopg.Cursor, path: Path) ->
                 'total': len(to_process)
             })
 
-    insert_media(db, processed)
+    with db.connection.transaction():
+        insert_media(db, processed)
+        insert_blocks(db)
 
     logging.info(f'Processed: {res.processed}, skipped: {res.skipped}, failed: {res.failed}')
     progress.update('complete', {
