@@ -216,7 +216,7 @@ def generate_thumbnail(file: FileMetadata):
         raise TypeError(f'Invalid file type for {file.path}: {file.type}')
 
     size = min(img.width, img.height)
-    box = ((img.width) // 2, (img.height - size) // 2, (img.width + size) // 2, (img.height + size) // 2)
+    box = ((img.width - size) // 2, (img.height - size) // 2, (img.width + size) // 2, (img.height + size) // 2)
     cropped = img.crop(box)
     cropped.thumbnail((256, 256))
     thumb = io.BytesIO()
