@@ -23,7 +23,7 @@ const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function 
          <div className="pb-1 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
             {Array.from(Array(props.end - props.start)).map((_, i) => (
                <div key={`${props.heading}-${i + props.start}`} className="relative w-full aspect-square rounded overflow-hidden">
-                  <ThumbnailImage block={props.heading} index={i} />
+                  <ThumbnailImage block={props.heading} index={i + props.start} />
                </div>
             ))}
          </div>
