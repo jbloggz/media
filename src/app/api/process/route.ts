@@ -13,8 +13,7 @@ export const POST = async (request: NextRequest) => {
    let res;
    try {
       res = await request.json();
-   }
-   catch (e) {
+   } catch (e) {
       return new Response(null, { status: 400, statusText: 'No input found' });
    }
 
@@ -24,9 +23,8 @@ export const POST = async (request: NextRequest) => {
 
    try {
       await db.query("SELECT pg_notify('media_processor', $1)", [res.path]);
-   }
-   catch (e) {
-      return new Response(null, { status: 500, statusText: 'Unable to contact database:' + e});
+   } catch (e) {
+      return new Response(null, { status: 500, statusText: 'Unable to contact database:' + e });
    }
 
    return Response.json({ success: true });
