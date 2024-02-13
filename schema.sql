@@ -38,9 +38,9 @@ CREATE TABLE IF NOT EXISTS block (
 
 /* Mapping of thumbnails to their block position */
 CREATE TABLE IF NOT EXISTS media_position (
-   media       INT8 NOT NULL REFERENCES media(id),     -- media id
-   block       INT4 NOT NULL REFERENCES block(id),     -- block id
-   position    INT4 NOT NULL                           -- offset within the block
+   media       INT8 NOT NULL REFERENCES media(id) ON DELETE CASCADE,  -- media id
+   block       INT4 NOT NULL REFERENCES block(id) ON DELETE CASCADE,  -- block id
+   position    INT4 NOT NULL                                          -- offset within the block
 );
 CREATE INDEX IF NOT exists media_position_index ON media_position(block, position);
 
