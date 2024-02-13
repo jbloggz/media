@@ -53,6 +53,21 @@ const Gallery = (props: APIBlocks) => {
       setBlockRange({ blockStart: idx, itemStart: 0, blockEnd: idx + 1, itemEnd: props.blocks[idx].count });
    };
 
+   /* Helper function for checking if another block can be added to the bottom */
+   const canAppendBlock = (container: HTMLDivElement, blocks: MediaBlock[], blockRange: DisplayRange) => {
+      const scrollBottom = container.scrollTop + container.clientHeight;
+      return (
+         scrollBottom > container.scrollHeight - addBlockThreshold &&
+         blockRange.blockEnd < blocks.length &&
+         blockRange.itemEnd < blocks[blockRange.blockEnd - 1].count
+      );
+   };
+
+   /* Helper function for checking if another block can be added to the start */
+   const canPrependBlock = (container: HTMLDivElement, blockRange: DisplayRange) => {
+      return container.scrollTop < addBlockThreshold && (blockRange.blockStart > 0 || blockRange.itemStart > 0);
+   };
+
    /* Helper function for bounded incrementing by an interval */
    const nextInterval = (current: number, interval: number, max: number) => {
       const value = current + interval - (current % interval);
@@ -109,7 +124,7 @@ const Gallery = (props: APIBlocks) => {
             mainElem.scrollTop = 1;
          }
 
-         if (scrollBottom > mainHeight - addBlockThreshold) {
+         if (canAppendBlock(mainElem, props.blocks, blockRange)) {
             /*
              * We are getting too close to the bottom, so need more items added
              * to the end.
@@ -119,8 +134,7 @@ const Gallery = (props: APIBlocks) => {
                blockEnd += 1;
             }
             itemEnd = nextInterval(itemEnd, props.blockSize, props.blocks[blockEnd - 1].count);
-         }
-         else if (scrollTop < addBlockThreshold) {
+         } else if (canPrependBlock(mainElem, blockRange)) {
             /*
              * We are getting too close to the top, so need more items added to
              * the start. This is an else-if because we only want to add blocks
