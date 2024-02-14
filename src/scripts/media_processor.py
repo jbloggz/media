@@ -218,7 +218,8 @@ def generate_thumbnail(file: FileMetadata):
     size = min(img.width, img.height)
     box = ((img.width - size) // 2, (img.height - size) // 2, (img.width + size) // 2, (img.height + size) // 2)
     cropped = img.crop(box)
-    cropped.thumbnail((256, 256))
+    thumb_size = int(os.environ['THUMBNAIL_SIZE'])
+    cropped.thumbnail((thumb_size, thumb_size))
     thumb = io.BytesIO()
     cropped.save(thumb, format='JPEG')
     file.thumbnail = thumb.getvalue()
@@ -610,6 +611,9 @@ def parse_args():  # pragma: no cover
     parser.add_argument('-u', '--progress-update', type=int, default=3, help='Progress update interval')
 
     args = parser.parse_args()
+
+    if not Path(args.env).exists():
+        parser.error(f'{args.env} not found')
 
     return args
 

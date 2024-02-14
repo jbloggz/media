@@ -34,6 +34,6 @@ export const GET = async (request: NextRequest) => {
          },
       });
    } catch (e) {
-      return new Response(null, { status: 404, statusText: `Cannot fint thumbnail: ${e}` });
+      return new Response(null, { status: 404, statusText: `Cannot find thumbnail: ${e}` });
    }
 };
