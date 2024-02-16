@@ -94,9 +94,11 @@ const Scrubber = (props: ScrubberProps) => {
    const onDrag = useCallback(
       (data: DraggableData) => {
          const scrollbarElem = scrollbarElemRef.current;
-         if (!scrollbarElem) {
+         const sliderElem = sliderElemRef.current;
+         if (!scrollbarElem || !sliderElem || props.blocks.length === 0) {
             return;
          }
+         sliderElem.style.top = `${data.y - 16}px`;
 
          let prevDiff = null;
          for (let i = 0; i < props.blocks.length; i++) {
@@ -114,7 +116,7 @@ const Scrubber = (props: ScrubberProps) => {
       [getBlockPosition, props]
    );
 
-   /* Get the shorthand version of the block heading, and position the slider */
+   /* Get the shorthand version of the block heading */
    useEffect(() => {
       const sliderElem = sliderElemRef.current;
       if (!sliderElem || props.blocks.length === 0) {
@@ -123,8 +125,12 @@ const Scrubber = (props: ScrubberProps) => {
 
       const [month, year] = props.blocks[props.visibleIdx].heading.split(' ');
       setVisibleMonth(`${month.substring(0, 3)} ${year}`);
-      sliderElem.style.top = `${getBlockPosition(props.visibleIdx) - 16}px`;
-   }, [props.blocks, props.visibleIdx, getBlockPosition]);
+
+      // If we aren't scrubbing, make sure we're positioned at a block */
+      if (!isScrubbing) {
+         sliderElem.style.top = `${getBlockPosition(props.visibleIdx) - 16}px`;
+      }
+   }, [isScrubbing, props.blocks, props.visibleIdx, getBlockPosition]);
 
    return (
       <div
