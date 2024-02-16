@@ -8,7 +8,7 @@
 
 import { useEffect } from 'react';
 
-const useIntervalFn = <T>(fn: () => void, ms: number) => {
+const useIntervalFn = (fn: () => void, ms: number) => {
    useEffect(() => {
       const handler = setInterval(() => fn(), ms);
 

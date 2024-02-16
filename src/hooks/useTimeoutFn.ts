@@ -8,7 +8,7 @@
 
 import { useEffect } from 'react';
 
-const useTimeout = <T>(fn: () => void, ms: number) => {
+const useTimeout = (fn: () => void, ms: number) => {
    useEffect(() => {
       const handler = setTimeout(() => fn(), ms);
 
