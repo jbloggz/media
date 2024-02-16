@@ -58,8 +58,7 @@ const Gallery = (props: APIBlocks) => {
       const scrollBottom = container.scrollTop + container.clientHeight;
       return (
          scrollBottom > container.scrollHeight - addBlockThreshold &&
-         blockRange.blockEnd < blocks.length ||
-         blockRange.itemEnd < blocks[blockRange.blockEnd - 1].count
+         (blockRange.blockEnd < blocks.length || blockRange.itemEnd < blocks[blockRange.blockEnd - 1].count)
       );
    };
 
@@ -227,11 +226,15 @@ const Gallery = (props: APIBlocks) => {
             onScrubStart={() => setIsScrubbing(true)}
             onScrubStop={() => setIsScrubbing(false)}
          />
-         <p className="fixed bottom-0 left-3">
-            Scroll = ({debugScrollTop}-{debugScrollBottom})/{debugScrollHeight}<br />
-            Block = ({blockRange.blockStart}-{blockRange.blockEnd})/{props.blocks.length}<br />
-            Index = ({blockRange.itemStart}-{blockRange.itemEnd})/{props.blocks[blockRange.blockStart].count}
-         </p>
+         {props.blocks.length > 0 && (
+            <p className="fixed bottom-0 left-3">
+               Scroll = ({debugScrollTop}-{debugScrollBottom})/{debugScrollHeight}
+               <br />
+               Block = ({blockRange.blockStart}-{blockRange.blockEnd})/{props.blocks.length}
+               <br />
+               Index = ({blockRange.itemStart}-{blockRange.itemEnd})/{props.blocks[blockRange.blockStart].count}
+            </p>
+         )}
       </main>
    );
 };
