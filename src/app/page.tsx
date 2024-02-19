@@ -5,20 +5,24 @@
  *
  * The home page where all the photos can be browsed
  */
+'use client';
 
-import { Gallery } from "@/components";
-import { GET as getBlocks } from "@/app/api/blocks/route";
+import { Gallery } from '@/components';
+import { useAPI } from '@/hooks';
 
-const Home = async () => {
-   const resp = await getBlocks()
-   if (!resp.ok) {
-      throw new Error('Failed to fetch blocks')
-   }
+const Home = () => {
+   const api = useAPI<MediaBlock[]>({ url: `/api/block` });
 
-   const data = await resp.json()
-
-   return (
-      <Gallery blockSize={data.blockSize} blocks={data.blocks} />
+   return api.isLoading ? (
+      <div className="flex h-screen">
+         <div className="m-auto">
+            <span className="loading loading-spinner loading-lg"></span>
+         </div>
+      </div>
+   ) : api.data ? (
+      <Gallery blocks={api.data} />
+   ) : (
+      <p>{api.error?.message || 'Unknown error occurred'}</p>
    );
 };
 
