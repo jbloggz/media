@@ -392,7 +392,7 @@ def insert_blocks(db: psycopg.Cursor):
     tz = pytz.timezone(os.environ['TIMEZONE'])
     for media in existing_media.values():
         dt = datetime.datetime.fromtimestamp(media['timestamp']).astimezone(tz)
-        heading = f'{calendar.month_name[dt.month]} {dt.year}'
+        heading = f'{dt.day} {calendar.month_name[dt.month]}, {dt.year}'
         if not buckets or buckets[-1]['heading'] != heading:
             buckets.append({
                 'heading': heading,

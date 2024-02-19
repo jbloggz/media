@@ -20,9 +20,6 @@ interface MediaBlock {
 
 /* The API response format for the /api/blocks endpoint */
 interface APIBlocks {
-   /* The number of items per block */
-   blockSize: number;
-
    /* The media blocks available */
    blocks: MediaBlock[];
 }

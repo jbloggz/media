@@ -13,28 +13,22 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 /* How many pixes away from the start/end are we allowed to add/remove blocks */
 const addBlockThreshold = 5000;
-const removeBlockThreshold = 9000;
+const removeBlockThreshold = 10000;
 
 /** The range of blocks to display on the screen */
 interface DisplayRange {
    /** The first block to display */
-   blockStart: number;
-
-   /** The first item to display with the first block */
-   itemStart: number;
+   start: number;
 
    /** One past the last block to display */
-   blockEnd: number;
-
-   /** One past the last item within the last block */
-   itemEnd: number;
+   end: number;
 }
 
 const Gallery = (props: APIBlocks) => {
    const mainElemRef = useRef<HTMLDivElement>(null);
    const blockRef = useRef<(HTMLDivElement | null)[]>(new Array(props.blocks.length));
    const [scrollPosition, setScrollPosition] = useState(0);
-   const [blockRange, setBlockRange] = useState<DisplayRange>({ blockStart: 0, itemStart: 0, blockEnd: 1, itemEnd: 0 });
+   const [blockRange, setBlockRange] = useState<DisplayRange>({ start: 0, end: 1 });
    const [visibleBlock, setVisibleBlock] = useState(0);
    const [isScrubbing, setIsScrubbing] = useState(false);
 
@@ -50,33 +44,38 @@ const Gallery = (props: APIBlocks) => {
        * position properly when you add content above you. So move down 1px.
        */
       mainElem.scrollTop = 1;
-      setBlockRange({ blockStart: idx, itemStart: 0, blockEnd: idx + 1, itemEnd: props.blocks[idx].count });
+
+      /* Update the blocks to start ot the scrub index and show at least 30 items */
+      let endIdx = idx;
+      let count = 0;
+      while (endIdx < props.blocks.length && count < 30) {
+         count += props.blocks[endIdx].count;
+         endIdx++;
+      }
+      setBlockRange({ start: idx, end: endIdx });
    };
 
    /* Helper function for checking if another block can be added to the bottom */
-   const canAppendBlock = (container: HTMLDivElement, blocks: MediaBlock[], blockRange: DisplayRange) => {
+   const canPushBlock = (container: HTMLDivElement, blocks: MediaBlock[], blockRange: DisplayRange) => {
       const scrollBottom = container.scrollTop + container.clientHeight;
-      return (
-         scrollBottom > container.scrollHeight - addBlockThreshold &&
-         (blockRange.blockEnd < blocks.length || blockRange.itemEnd < blocks[blockRange.blockEnd - 1].count)
-      );
+      return scrollBottom > container.scrollHeight - addBlockThreshold && blockRange.end < blocks.length;
    };
 
    /* Helper function for checking if another block can be added to the start */
-   const canPrependBlock = (container: HTMLDivElement, blockRange: DisplayRange) => {
-      return container.scrollTop < addBlockThreshold && (blockRange.blockStart > 0 || blockRange.itemStart > 0);
+   const canUnshiftBlock = (container: HTMLDivElement, blockRange: DisplayRange) => {
+      return container.scrollTop < addBlockThreshold && blockRange.start > 0;
    };
 
-   /* Helper function for bounded incrementing by an interval */
-   const nextInterval = (current: number, interval: number, max: number) => {
-      const value = current + interval - (current % interval);
-      return value > max ? max : value;
+   /* Helper function for checking if the last block can be removed */
+   const canPopBlock = (container: HTMLDivElement, idx: number) => {
+      const block = blockRef.current[idx];
+      return block && block.getBoundingClientRect().top - container.clientHeight > removeBlockThreshold;
    };
 
-   /* Helper function for bounded decrementing by an interval */
-   const prevInterval = (current: number, interval: number, min: number) => {
-      const value = current - 1 - ((current - 1) % interval);
-      return value < min ? min : value;
+   /* Helper function for checking if the first block can be removed */
+   const canShiftBlock = (idx: number) => {
+      const block = blockRef.current[idx];
+      return block && block.getBoundingClientRect().bottom < -removeBlockThreshold;
    };
 
    /* Get the block that is currently visible on screen */
@@ -92,8 +91,7 @@ const Gallery = (props: APIBlocks) => {
          return elemRect.top >= mainRect.top || (elemRect.top < mainRectMiddle && elemRect.bottom > mainRectMiddle);
       };
 
-      let { blockStart, blockEnd } = blockRange;
-      for (let i = blockStart; i < blockEnd; i++) {
+      for (let i = blockRange.start; i < blockRange.end; i++) {
          if (isElementInView(blockRef.current[i])) {
             setVisibleBlock(i);
             break;
@@ -104,15 +102,11 @@ const Gallery = (props: APIBlocks) => {
    /* Update the blocks displayed on screen depending on the scroll position */
    useThrottleFn(
       useCallback(() => {
-         let { blockStart, itemStart, blockEnd, itemEnd } = blockRange;
+         let { start, end } = blockRange;
          const mainElem = mainElemRef.current;
          if (isScrubbing || !mainElem || props.blocks.length === 0) {
             return;
          }
-
-         const mainHeight = mainElem.scrollHeight;
-         const scrollTop = mainElem.scrollTop;
-         const scrollBottom = mainElem.scrollTop + mainElem.clientHeight;
 
          /*
           * This is a hack to make sure we're never at exactly the top of the
@@ -123,65 +117,27 @@ const Gallery = (props: APIBlocks) => {
             mainElem.scrollTop = 1;
          }
 
-         if (canAppendBlock(mainElem, props.blocks, blockRange)) {
-            /*
-             * We are getting too close to the bottom, so need more items added
-             * to the end.
-             */
-            if (itemEnd === props.blocks[blockEnd - 1].count && blockEnd < props.blocks.length) {
-               itemEnd = 0;
-               blockEnd += 1;
-            }
-            itemEnd = nextInterval(itemEnd, props.blockSize, props.blocks[blockEnd - 1].count);
-         } else if (canPrependBlock(mainElem, blockRange)) {
-            /*
-             * We are getting too close to the top, so need more items added to
-             * the start. This is an else-if because we only want to add blocks
-             * to the top after we have finished adding blocks to the bottom.
-             */
-            if (itemStart === 0 && blockStart > 0) {
-               blockStart -= 1;
-               itemStart = props.blocks[blockStart].count;
-            }
-            itemStart = prevInterval(itemStart, props.blockSize, 0);
-         }
-
-         if (scrollTop > removeBlockThreshold) {
-            /*
-             * We are far enough away from the top that we can remove some
-             * items from the start.
-             */
-            itemStart = nextInterval(itemStart, props.blockSize, props.blocks[blockStart].count);
-            if (itemStart === props.blocks[blockStart].count) {
-               itemStart = 0;
-               blockStart += 1;
-            }
-         }
-
-         if (scrollBottom < mainHeight - removeBlockThreshold) {
-            /*
-             * We are far enough away from the bottom that we can remove some
-             * items from the end.
-             */
-            itemEnd = prevInterval(itemEnd, props.blockSize, 0);
-            if (itemEnd === 0) {
-               blockEnd -= 1;
-               itemEnd = props.blocks[blockEnd - 1].count;
-            }
+         if (canPushBlock(mainElem, props.blocks, blockRange)) {
+            /* We are too close to the bottom, so add a block to the bottom */
+            end += 1;
+         } else if (canPopBlock(mainElem, end - 1)) {
+            /* We are far enough away from the last block that we can remove it */
+            end -= 1;
+         } else if (canShiftBlock(start)) {
+            /* We are far enough away from the first block that we can remove it */
+            start += 1;
+         } else if (canUnshiftBlock(mainElem, blockRange)) {
+            /* We are too close to the top, so add a block to the top */
+            start -= 1;
          }
 
          /*
           * Update the block range if it has changed.
           */
-         if (
-            blockStart !== blockRange.blockStart ||
-            blockEnd !== blockRange.blockEnd ||
-            itemStart !== blockRange.itemStart ||
-            itemEnd !== blockRange.itemEnd
-         ) {
-            setBlockRange({ blockStart, itemStart, blockEnd, itemEnd });
+         if (start !== blockRange.start || end !== blockRange.end) {
+            setBlockRange({ start, end });
          }
-      }, [blockRange, isScrubbing, props.blockSize, props.blocks]),
+      }, [blockRange, isScrubbing, props.blocks]),
       100,
       scrollPosition
    );
@@ -208,18 +164,11 @@ const Gallery = (props: APIBlocks) => {
 
    return (
       <main className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar" ref={mainElemRef}>
-         {props.blocks.slice(blockRange.blockStart, blockRange.blockEnd).map(({ heading, count }, idx) => (
-            <ThumbnailBlock
-               className={'pb-6'}
-               key={heading}
-               ref={(elem) => (blockRef.current[blockRange.blockStart + idx] = elem)}
-               heading={heading}
-               start={idx === 0 ? blockRange.itemStart : 0}
-               end={idx === blockRange.blockEnd - blockRange.blockStart - 1 ? blockRange.itemEnd : count}
-            />
+         {props.blocks.slice(blockRange.start, blockRange.end).map((block, idx) => (
+            <ThumbnailBlock key={block.heading} className={'pb-6'} block={block} ref={(elem) => (blockRef.current[blockRange.start + idx] = elem)} />
          ))}
          <Scrubber
-            visibleIdx={visibleBlock}
+            currentBlock={visibleBlock}
             blocks={props.blocks}
             scrollPosition={scrollPosition}
             onScrub={onScrub}
@@ -230,9 +179,9 @@ const Gallery = (props: APIBlocks) => {
             <p className="fixed bottom-0 left-3">
                Scroll = ({debugScrollTop}-{debugScrollBottom})/{debugScrollHeight}
                <br />
-               Block = ({blockRange.blockStart}-{blockRange.blockEnd})/{props.blocks.length}
+               Block = ({blockRange.start}-{blockRange.end})/{props.blocks.length}
                <br />
-               Index = ({blockRange.itemStart}-{blockRange.itemEnd})/{props.blocks[blockRange.blockStart].count}
+               Visible Block = {props.blocks[visibleBlock].heading}
             </p>
          )}
       </main>

@@ -11,19 +11,17 @@ import { ThumbnailImage } from '.';
 
 interface ThumbnailBlockProps {
    className?: string;
-   heading: string;
-   start: number;
-   end: number;
+   block: MediaBlock;
 }
 
 const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function ThumbnailBlock(props, ref) {
    return (
-      <div key={props.heading} ref={ref} className={props.className}>
-         {props.heading && <h1 className="text-xl font-bold p-2">{props.heading}</h1>}
-         <div className="pb-1 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
-            {Array.from(Array(props.end - props.start)).map((_, i) => (
-               <div key={`${props.heading}-${i + props.start}`} className="relative w-full aspect-square rounded overflow-hidden">
-                  <ThumbnailImage block={props.heading} index={i + props.start} />
+      <div key={props.block.heading} ref={ref} className={props.className}>
+         {props.block.heading && <h1 className="text-xl font-bold p-2">{props.block.heading}</h1>}
+         <div className="pb-1 grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
+            {Array.from(Array(props.block.count)).map((_, i) => (
+               <div key={`${props.block.heading}-${i}`} className="relative w-full aspect-square overflow-hidden">
+                  <ThumbnailImage block={props.block.heading} index={i} />
                </div>
             ))}
          </div>

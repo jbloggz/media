@@ -9,7 +9,7 @@
 
 import { useAPI } from '@/hooks';
 import Image from 'next/image';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 interface ThumbnailImageProps {
    block: string;
@@ -40,15 +40,19 @@ const prettyDuration = (duration: number): string => {
 };
 
 /* How far from the screen before we load an image */
-const imagePreloadOffset = 0;
+const imagePreloadOffset = 2000;
 
 const ThumbnailImage = (props: ThumbnailImageProps) => {
+   const [render, setRender] = useState(false);
    const container = useRef<HTMLDivElement>(null);
    const imageRect = container.current && container.current.getBoundingClientRect();
    const imageTop = imageRect?.top || NaN;
    const imageBottom = imageRect?.bottom || NaN;
-   const renderImage = imageBottom > -imagePreloadOffset && imageTop < window.innerHeight + imagePreloadOffset;
-   const api = useAPI<ThumbMeta>({ disabled: !renderImage, url: `/api/thumbmeta?block=${props.block}&index=${props.index}` });
+
+   if (!render && imageBottom > -imagePreloadOffset && imageTop < window.innerHeight + imagePreloadOffset) {
+      setRender(true);
+   }
+   const api = useAPI<ThumbMeta>({ disabled: !render, url: `/api/thumbmeta?block=${props.block}&index=${props.index}` });
 
    return (
       <>
@@ -62,7 +66,7 @@ const ThumbnailImage = (props: ThumbnailImageProps) => {
             >
                <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
             </svg>
-            {renderImage && (
+            {render && (
                <Image
                   unoptimized={true}
                   src={`/api/thumb?block=${props.block}&index=${props.index}`}
