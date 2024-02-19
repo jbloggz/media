@@ -11,10 +11,7 @@ import db from '@/database';
 export const GET = async () => {
    try {
       const result = await db.query('SELECT heading,count,total FROM block ORDER BY id');
-      return Response.json({
-         blockSize: 60,
-         blocks: result.rows,
-      });
+      return Response.json(result.rows);
    } catch (e) {
       return new Response(null, { status: 500, statusText: 'Database query failed' });
    }
