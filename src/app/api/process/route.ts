@@ -7,25 +7,25 @@
  */
 
 import db from '@/database';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const POST = async (request: NextRequest) => {
    let res;
    try {
       res = await request.json();
    } catch (e) {
-      return new Response(null, { status: 400, statusText: 'No input found' });
+      return NextResponse.json({ message: 'No input found' }, { status: 400 });
    }
 
    if (!res.path) {
-      return new Response(null, { status: 400, statusText: 'No path specified' });
+      return NextResponse.json({ message: 'No path specified' }, { status: 400 });
    }
 
    try {
       await db.query("SELECT pg_notify('media_processor', $1)", [res.path]);
    } catch (e) {
-      return new Response(null, { status: 500, statusText: 'Unable to contact database:' + e });
+      return NextResponse.json({ message: 'Unable to contact database' }, { status: 500 });
    }
 
-   return Response.json({ success: true });
+   return NextResponse.json({ success: true });
 };

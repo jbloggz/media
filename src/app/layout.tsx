@@ -10,6 +10,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { getServerSession } from 'next-auth';
 import { AppDrawer, NavBar } from '@/components';
+import { ToastContainer } from 'react-toastify';
 import Login from './login/page';
 import './globals.css';
 
@@ -33,6 +34,7 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
             ) : (
                <Login />
             )}
+         <ToastContainer stacked autoClose={false} draggable theme="dark" />
          </body>
       </html>
    );

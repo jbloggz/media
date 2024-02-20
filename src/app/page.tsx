@@ -9,20 +9,33 @@
 
 import { Gallery } from '@/components';
 import { useAPI } from '@/hooks';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Home = () => {
-   const api = useAPI<MediaBlock[]>({ url: `/api/block` });
+   const params = useSearchParams();
+   const api = useAPI<MediaBlock[]>({ url: `/api/block?q=${params.get('q') || ''}` });
 
-   return api.isLoading ? (
-      <div className="flex h-screen">
-         <div className="m-auto">
-            <span className="loading loading-spinner loading-lg"></span>
-         </div>
-      </div>
-   ) : api.data ? (
-      <Gallery blocks={api.data} />
-   ) : (
-      <p>{api.error?.message || 'Unknown error occurred'}</p>
+   useEffect(() => {
+      if (api.error) {
+         toast.error(api.error?.message || 'Unknown error occurred');
+      }
+   }, [api.error]);
+
+   return (
+      <>
+         {api.isLoading ? (
+            <div className="flex h-screen">
+               <div className="m-auto">
+                  <span className="loading loading-spinner loading-lg"></span>
+               </div>
+            </div>
+         ) : (
+            api.data && <Gallery blocks={api.data} />
+         )}
+      </>
    );
 };
 

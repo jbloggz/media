@@ -43,7 +43,7 @@ const fetcher = async <T>(req: APIRequest<T>) => {
       throw new APIError('Invalid API response', 500);
    }
    if (!resp.ok) {
-      throw new APIError(data.statusText, code);
+      throw new APIError(data.message, code);
    }
    if (req.validate && !req.validate(data)) {
       throw new APIError('Response validation failed', code);
@@ -55,7 +55,7 @@ const fetcher = async <T>(req: APIRequest<T>) => {
 };
 
 const useAPI = <T>(req: APIRequest<T>) => {
-   return useSWR<T, APIError>(req.disabled ? null : [req], ([r]) => fetcher(r));
+   return useSWR<T, APIError>(req.disabled ? null : [req], ([r]) => fetcher(r), { shouldRetryOnError: false });
 };
 
 export default useAPI;

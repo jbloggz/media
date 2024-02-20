@@ -6,7 +6,7 @@
  * The route to download an image thumbnail
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import db from '@/database';
 
 export const GET = async (request: NextRequest) => {
@@ -26,7 +26,7 @@ export const GET = async (request: NextRequest) => {
          [block, index]
       );
       const image = result.rows[0]['thumbnail'];
-      return new Response(image, {
+      return new NextResponse(image, {
          status: 200,
          headers: {
             'Content-Type': 'image/jpeg',
@@ -34,6 +34,6 @@ export const GET = async (request: NextRequest) => {
          },
       });
    } catch (e) {
-      return new Response(null, { status: 404, statusText: `Cannot find thumbnail: ${e}` });
+      return NextResponse.json({ message: 'Cannot find thumbnail' }, { status: 404 });
    }
 };

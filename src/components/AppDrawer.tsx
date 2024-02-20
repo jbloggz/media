@@ -23,7 +23,12 @@ const AppDrawer = (props: { children: React.ReactNode }) => {
             <ul className="menu p-4 w-3/5 min-h-full bg-base-200">
                <li>
                   <Link href="/" onClick={() => setOpen(false)}>
-                     Browser
+                     Gallery
+                  </Link>
+               </li>
+               <li>
+                  <Link href="/search" onClick={() => setOpen(false)}>
+                     Search
                   </Link>
                </li>
                <li>

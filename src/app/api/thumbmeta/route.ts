@@ -6,7 +6,7 @@
  * The route to for getting thumbnail metadata
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import db from '@/database';
 
 export const GET = async (request: NextRequest) => {
@@ -27,7 +27,7 @@ export const GET = async (request: NextRequest) => {
       );
 
       const type = result.rows[0].type.toString();
-      return Response.json(
+      return NextResponse.json(
          type == 'image'
             ? {
                  type,
@@ -40,6 +40,6 @@ export const GET = async (request: NextRequest) => {
               }
       );
    } catch (e) {
-      return new Response(null, { status: 404, statusText: `Cannot find thumbnail metadata: ${e}` });
+      return NextResponse.json({ message: 'Cannot find thumbnail metadata' }, { status: 404 });
    }
 };
