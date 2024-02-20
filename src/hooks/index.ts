@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright (c) 2023 Josef Barnes
+ * Author: Josef Barnes
  *
  * This file exports all the hooks
  */

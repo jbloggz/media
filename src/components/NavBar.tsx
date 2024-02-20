@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright (c) 2023 Josef Barnes
+ * Author: Josef Barnes
  *
  * The main navigation bar at the top of the page
  */

@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright (c) 2023 Josef Barnes
+ * Author: Josef Barnes
  *
  * The scrubber bar to the right of the screen
  */

@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright (c) 2024 Josef Barnes
+ * Author: Josef Barnes
  *
  * schema.sql: This file is the database schema for the media database
  */

@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2023 Josef Barnes
+# Author: Josef Barnes
 #
 # The script to process and index files in the provided directory
 #

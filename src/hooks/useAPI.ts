@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright (c) 2024 Josef Barnes
+ * Author: Josef Barnes
  *
  * A react hook for calling the API using useSWR
  */

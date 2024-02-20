@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright (c) 2023 Josef Barnes
+ * Author: Josef Barnes
  *
  * A react hook for calling a function when state changes at a throttled rate
  */
