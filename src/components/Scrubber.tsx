@@ -18,7 +18,7 @@ const scrubberHideTimeout = 5000;
 const scrubberNodeCount = 100;
 
 interface Node {
-   heading: string;
+   name: string;
    block: number;
    position: number;
 }
@@ -32,9 +32,9 @@ interface ScrubberProps {
    onScrubStop: () => void;
 }
 
-const getNodeHeading = (blockHeading: string) => {
-   const [day, month, year] = blockHeading.split(' ');
-   return `${month.substring(0, 3)} ${year}`;
+const getNodeName = (day: string) => {
+   const dt = new Date(day);
+   return dt.toLocaleDateString('default', {month: 'short', year: 'numeric'});
 };
 
 /**
@@ -59,7 +59,7 @@ const buildNodes = (blocks: MediaBlock[]): [Node[], { [key: number]: number }] =
    for (const [idx, block] of blocks.entries()) {
       if (count > mediaPerNode) {
          nodes.push({
-            heading: getNodeHeading(blocks[nodeIdx].heading),
+            name: getNodeName(blocks[nodeIdx].day),
             block: nodeIdx,
             position,
          });
@@ -73,7 +73,7 @@ const buildNodes = (blocks: MediaBlock[]): [Node[], { [key: number]: number }] =
 
    if (count > 0) {
       nodes.push({
-         heading: getNodeHeading(blocks[nodeIdx].heading),
+         name: getNodeName(blocks[nodeIdx].day),
          block: nodeIdx,
          position,
       });
@@ -247,7 +247,7 @@ const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScrubStart,
       <div ref={scrollbarElemRef} className="fixed w-1 bg-gray-500 top-28 bottom-10 right-2 transition-opacity duration-1000 opacity-0 rounded">
          {nodes.map((node) => (
             <div
-               key={blocks[node.block].heading}
+               key={blocks[node.block].day}
                className="absolute w-1 h-1 bg-gray-700 rounded-full"
                style={{ top: `${scrollbarElemRef.current ? node.position * scrollbarElemRef.current.clientHeight - 2 : 0}px` }}
             ></div>
@@ -255,7 +255,7 @@ const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScrubStart,
          <DraggableCore nodeRef={sliderElemRef} onDrag={(_, d) => onDrag(d)} onStart={onDragStart} onStop={onDragStop}>
             <div ref={sliderElemRef} className="absolute w-16 h-8 right-5 bg-gray-500 rounded-[3px] text-center cursor-pointer">
                <div className="absolute w-5 h-5 rotate-45 -right-2.5 top-1.5 bg-gray-500"></div>
-               <span className="relative inline-block text-xs font-bold pt-2 select-none">{currentNode?.heading}</span>
+               <span className="relative inline-block text-xs font-bold pt-2 select-none">{currentNode?.name}</span>
             </div>
          </DraggableCore>
       </div>

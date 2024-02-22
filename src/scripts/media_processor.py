@@ -24,7 +24,6 @@ import io
 import sys
 import time
 import json
-import calendar
 import argparse
 import signal
 import mimetypes
@@ -69,7 +68,7 @@ class Result(BaseModel):
 
 class Lock:
     '''
-    A class to represent a advisory lock in postgres
+    A class to represent an advisory lock in postgres
     '''
 
     def __init__(self, db: psycopg.Cursor):
@@ -227,7 +226,7 @@ def generate_thumbnail(file: FileMetadata):
 
 def decode_exif_timestamp(exif_time: str) -> int:
     '''
-    COnvert a string exif formatted timestamp to unix epock seconds
+    Convert a string exif formatted timestamp to unix epock seconds
 
     Args:
         exif_time: The exit timestamp
@@ -380,41 +379,6 @@ def get_existing_media(db: psycopg.Cursor) -> Dict[Path, int]:
     } for row in db.fetchall()}
 
 
-def insert_blocks(db: psycopg.Cursor):
-    '''
-    Create all the blocks for the current database
-
-    Args:
-        db: An opened postgres cursor
-    '''
-    existing_media = get_existing_media(db)
-    buckets: List[Dict] = []
-    tz = pytz.timezone(os.environ['TIMEZONE'])
-    for media in existing_media.values():
-        dt = datetime.datetime.fromtimestamp(media['timestamp']).astimezone(tz)
-        heading = f'{dt.day} {calendar.month_name[dt.month]}, {dt.year}'
-        if not buckets or buckets[-1]['heading'] != heading:
-            buckets.append({
-                'heading': heading,
-                'media': []
-            })
-        buckets[-1]['media'].append(media['id'])
-
-    total = 0
-    db.execute('DELETE FROM block')
-    with db.copy(f'COPY block (id,heading,count,total) FROM STDIN') as copy:
-        for idx, bucket in enumerate(buckets):
-            count = len(bucket['media'])
-            total += count
-            copy.write_row([idx + 1, bucket['heading'], count, total])
-
-    db.execute('DELETE FROM media_position')
-    with db.copy(f'COPY media_position (media,block,position) FROM STDIN') as copy:
-        for idx, bucket in enumerate(buckets):
-            for pos, media in enumerate(bucket['media']):
-                copy.write_row([media, idx + 1, pos])
-
-
 def validate_file(file: FileMetadata):
     '''
     Validate that a file has all the necessary fields set
@@ -539,7 +503,6 @@ def index_directory(args: argparse.Namespace, db: psycopg.Cursor, path: Path) ->
 
     with db.connection.transaction():
         insert_media(db, processed)
-        insert_blocks(db)
 
     logging.info(f'Processed: {res.processed}, skipped: {res.skipped}, failed: {res.failed}')
     progress.update('complete', {

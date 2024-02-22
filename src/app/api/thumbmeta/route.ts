@@ -7,38 +7,29 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import moment from 'moment-timezone';
 import db from '@/database';
 
 export const GET = async (request: NextRequest) => {
    const searchParams = request.nextUrl.searchParams;
-   const block = searchParams.get('block') || '';
-   const index = +(searchParams.get('index') || 0);
-
+   const query = searchParams.get('q') || '';
+   const day = searchParams.get('day') || '';
+   const tzDay = moment.tz(day, process.env['TIMEZONE'] || '');
+   const start = tzDay.clone().startOf('day');
+   const end = tzDay.clone().endOf('day');
    try {
       const result = await db.query(
          `
-         SELECT media.id, media.type, media.duration
-         from media_position
-         JOIN block ON block.id = media_position.block
-         JOIN media ON media.id = media_position.media
-         WHERE block.heading = $1 AND media_position.position = $2
+         SELECT id, type, duration
+         FROM media
+         ${query === '' ? '' : `WHERE ${query}`}
+         ${query === '' ? 'WHERE ' : 'AND '} timestamp BETWEEN $1 AND $2
+         ORDER BY timestamp DESC
          `,
-         [block, index]
+         [start.unix(), end.unix()]
       );
 
-      const type = result.rows[0].type.toString();
-      return NextResponse.json(
-         type == 'image'
-            ? {
-                 type,
-                 id: +result.rows[0].id,
-              }
-            : {
-                 type,
-                 id: +result.rows[0].id,
-                 duration: +result.rows[0].duration,
-              }
-      );
+      return NextResponse.json(result.rows.map((row) => ({ type: row.type, id: +row.id, duration: +row.duration })));
    } catch (e) {
       return NextResponse.json({ message: 'Cannot find thumbnail metadata' }, { status: 404 });
    }

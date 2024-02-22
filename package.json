@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "moment-timezone": "^0.5.45",
     "next": "14.0.2",
     "next-auth": "^4.24.5",
     "pg": "^8.11.3",

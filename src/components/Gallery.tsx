@@ -24,7 +24,12 @@ interface DisplayRange {
    end: number;
 }
 
-const Gallery = (props: APIBlocks) => {
+interface GalleryProps {
+   /* The media blocks available */
+   blocks: MediaBlock[];
+}
+
+const Gallery = (props: GalleryProps) => {
    const mainElemRef = useRef<HTMLDivElement>(null);
    const blockRef = useRef<(HTMLDivElement | null)[]>(new Array(props.blocks.length));
    const [scrollPosition, setScrollPosition] = useState(0);
@@ -165,7 +170,7 @@ const Gallery = (props: APIBlocks) => {
    return (
       <main className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar" ref={mainElemRef}>
          {props.blocks.slice(blockRange.start, blockRange.end).map((block, idx) => (
-            <ThumbnailBlock key={block.heading} className={'pb-6'} block={block} ref={(elem) => (blockRef.current[blockRange.start + idx] = elem)} />
+            <ThumbnailBlock key={block.day} className={'pb-6'} block={block} ref={(elem) => (blockRef.current[blockRange.start + idx] = elem)} />
          ))}
          <Scrubber
             currentBlock={visibleBlock}
@@ -181,7 +186,7 @@ const Gallery = (props: APIBlocks) => {
                <br />
                Block = ({blockRange.start}-{blockRange.end})/{props.blocks.length}
                <br />
-               Visible Block = {props.blocks[visibleBlock].heading}
+               Visible Block = {props.blocks[visibleBlock].day}
             </p>
          )}
       </main>

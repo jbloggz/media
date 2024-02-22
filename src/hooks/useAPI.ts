@@ -14,7 +14,6 @@ export interface APIRequest<T> {
    headers?: { [key: string]: string };
    body?: string;
    disabled?: boolean;
-   validate?: (data: unknown) => data is T;
 }
 
 /* An Error object returned when the code is not 2XX */
@@ -45,9 +44,6 @@ const fetcher = async <T>(req: APIRequest<T>) => {
    if (!resp.ok) {
       throw new APIError(data.message, code);
    }
-   if (req.validate && !req.validate(data)) {
-      throw new APIError('Response validation failed', code);
-   }
    if (code >= 400) {
       throw new APIError(resp.statusText, code);
    }
@@ -55,7 +51,7 @@ const fetcher = async <T>(req: APIRequest<T>) => {
 };
 
 const useAPI = <T>(req: APIRequest<T>) => {
-   return useSWR<T, APIError>(req.disabled ? null : [req], ([r]) => fetcher(r), { shouldRetryOnError: false });
+   return useSWR<T, APIError>(req.disabled ? null : [req], ([r]) => fetcher(r), { shouldRetryOnError: false, revalidateOnFocus: false });
 };
 
 export default useAPI;

@@ -3,7 +3,7 @@
  *
  * Author: Josef Barnes
  *
- * The route to download the block info
+ * The route to download a list of blocks with a given filter
  */
 
 import db from '@/database';
@@ -13,15 +13,23 @@ export const GET = async (request: NextRequest) => {
    const searchParams = request.nextUrl.searchParams;
    const query = searchParams.get('q') || '';
 
-   if (query === '') {
-      /* No query provided, so get all blocks */
-      try {
-         const result = await db.query('SELECT heading,count,total FROM block ORDER BY id');
-         return NextResponse.json(result.rows);
-      } catch (e) {
-         return NextResponse.json({ message: 'Database query failed' }, { status: 500 });
-      }
-   } else {
-      return NextResponse.json({ message: 'Not Implemented' }, { status: 400 });
+   try {
+      const result = await db.query(
+         `
+         WITH GroupedData AS (
+            SELECT TO_CHAR(TO_TIMESTAMP(timestamp) AT TIME ZONE '${process.env['TIMEZONE']}', 'YYYY-MM-DD') AS day, COUNT(*) AS count
+            FROM media
+            ${query !== '' ? 'WHERE ' + query : ''}
+            GROUP BY day
+         )
+         SELECT day, CAST(count AS INTEGER), CAST(SUM(count) OVER (ORDER BY day DESC) AS INTEGER) AS total
+         FROM GroupedData
+         ORDER BY day DESC
+         `
+      );
+
+      return NextResponse.json(result.rows);
+   } catch (e) {
+      return NextResponse.json({ message: 'Database query failed' }, { status: 500 });
    }
 };

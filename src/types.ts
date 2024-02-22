@@ -8,8 +8,8 @@
 
 /* A block of media items */
 interface MediaBlock {
-   /* A name to use for this block */
-   heading: string;
+   /* The date for this block */
+   day: string;
 
    /* The number of items in this block */
    count: number;
@@ -18,8 +18,26 @@ interface MediaBlock {
    total: number;
 }
 
-/* The API response format for the /api/blocks endpoint */
-interface APIBlocks {
-   /* The media blocks available */
-   blocks: MediaBlock[];
+/* Metadata for a thumbnail image */
+interface ThumbImageMeta {
+   /* The id of the media */
+   id: number;
+
+   /* The media type */
+   type: 'image';
 }
+
+/* Metadata for a thumbnail video */
+interface ThumbVideoMeta {
+   /* The id of the media */
+   id: number;
+
+   /* The media type */
+   type: 'video';
+
+   /* THe duration in milliseconds */
+   duration: number;
+}
+
+/* Metadata for a media thumbnail */
+type ThumbMeta = ThumbImageMeta | ThumbVideoMeta;
