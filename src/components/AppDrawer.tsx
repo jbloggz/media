@@ -27,11 +27,6 @@ const AppDrawer = (props: { children: React.ReactNode }) => {
                   </Link>
                </li>
                <li>
-                  <Link href="/search" onClick={() => setOpen(false)}>
-                     Search
-                  </Link>
-               </li>
-               <li>
                   <Link href="/settings" onClick={() => setOpen(false)}>
                      Settings
                   </Link>

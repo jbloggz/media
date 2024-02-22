@@ -11,7 +11,7 @@ import { Scrubber, ThumbnailBlock } from '@/components';
 import { useThrottleFn } from '@/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-/* How many pixes away from the start/end are we allowed to add/remove blocks */
+/* How many pixels away from the start/end are we allowed to add/remove blocks */
 const addBlockThreshold = 5000;
 const removeBlockThreshold = 10000;
 
@@ -27,6 +27,9 @@ interface DisplayRange {
 interface GalleryProps {
    /* The media blocks available */
    blocks: MediaBlock[];
+
+   /* The filter query */
+   query: string;
 }
 
 const Gallery = (props: GalleryProps) => {
@@ -170,7 +173,7 @@ const Gallery = (props: GalleryProps) => {
    return (
       <main className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar" ref={mainElemRef}>
          {props.blocks.slice(blockRange.start, blockRange.end).map((block, idx) => (
-            <ThumbnailBlock key={block.day} className={'pb-6'} block={block} ref={(elem) => (blockRef.current[blockRange.start + idx] = elem)} />
+            <ThumbnailBlock key={block.day} className={'pb-6'} block={block} query={props.query} ref={(elem) => (blockRef.current[blockRange.start + idx] = elem)} />
          ))}
          <Scrubber
             currentBlock={visibleBlock}

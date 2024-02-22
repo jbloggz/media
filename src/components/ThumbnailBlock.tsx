@@ -8,7 +8,6 @@
 'use client';
 
 import { forwardRef, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useAPI } from '@/hooks';
 import { ThumbnailImage } from '.';
@@ -16,6 +15,7 @@ import { ThumbnailImage } from '.';
 interface ThumbnailBlockProps {
    className?: string;
    block: MediaBlock;
+   query: number;
 }
 
 const getBlockHeading = (day: string): string => {
@@ -24,9 +24,7 @@ const getBlockHeading = (day: string): string => {
 };
 
 const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function ThumbnailBlock(props, ref) {
-   const params = useSearchParams();
-   const query = params.get('q') || '';
-   const api = useAPI<ThumbMeta[]>({ url: `/api/thumbmeta?q=${query}&day=${props.block.day}` });
+   const api = useAPI<ThumbMeta[]>({ url: `/api/thumbmeta?q=${props.query}&day=${props.block.day}` });
 
    useEffect(() => {
       if (api.error) {
@@ -37,7 +35,7 @@ const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function 
    return (
       <div ref={ref} className={props.className}>
          {props.block.day && <h1 className="text-xl font-bold p-2">{getBlockHeading(props.block.day)}</h1>}
-         <div className="pb-1 grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
+         <div className="pb-1 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
             {api.data
                ? api.data.map((meta) => <ThumbnailImage key={meta.id} meta={meta} />)
                : Array.from(Array(props.block.count)).map((_, i) => <ThumbnailImage key={i} />)}

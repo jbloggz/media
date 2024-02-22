@@ -7,16 +7,15 @@
  */
 'use client';
 
-import { Gallery } from '@/components';
+import { Gallery, SearchDialog } from '@/components';
 import { useAPI } from '@/hooks';
-import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Home = () => {
-   const params = useSearchParams();
-   const api = useAPI<MediaBlock[]>({ url: `/api/block?q=${params.get('q') || ''}` });
+   const [query, setQuery] = useState('');
+   const api = useAPI<MediaBlock[]>({ url: `/api/block?q=${query}` });
 
    useEffect(() => {
       if (api.error) {
@@ -33,7 +32,12 @@ const Home = () => {
                </div>
             </div>
          ) : (
-            api.data && <Gallery blocks={api.data} />
+            api.data && (
+               <>
+                  <Gallery blocks={api.data} query={query} />
+                  <SearchDialog query={query} setQuery={setQuery} />
+               </>
+            )
          )}
       </>
    );
