@@ -9,3 +9,59 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Styles for the react-select dropdown */
+@layer components {
+   .react-select-container .react-select__control {
+      @apply border min-h-12 bg-base-100 input-bordered shadow-none;
+   }
+
+   .react-select-container .react-select__control:hover {
+      @apply cursor-pointer input-bordered;
+   }
+
+   .react-select-container .react-select__control--is-focused {
+      @apply input-bordered;
+      outline-offset: 2px;
+      outline-style: solid !important;
+      outline-width: 2px !important;
+      outline-color: var(--fallback-bc, oklch(var(--bc) / 0.2)) !important;
+   }
+
+   .react-select-container .react-select__control .react-select__value-container .react-select__placeholder,
+   .react-select-container .react-select__input-container {
+      @apply text-neutral-400;
+   }
+
+   .react-select-container .react-select__menu {
+      @apply bg-base-100 border shadow-none;
+      border-color: var(--fallback-bc, oklch(var(--bc) / 0.1));
+   }
+
+   .react-select-container .react-select__option {
+      @apply bg-base-100 hover:bg-base-200 hover:cursor-pointer;
+   }
+
+   [data-theme='business'] .react-select-container .react-select__indicator-separator {
+      @apply bg-gray-600;
+   }
+
+   [data-theme='business'] .react-select-container .react-select__clear-indicator,
+   [data-theme='business'] .react-select-container .react-select__dropdown-indicator {
+      @apply text-gray-600;
+   }
+
+   [data-theme='business'] .react-select-container .react-select__clear-indicator:hover,
+   [data-theme='business'] .react-select-container .react-select__dropdown-indicator:hover {
+      @apply text-gray-500;
+   }
+
+   [data-theme='business'] .react-select-container .react-select__multi-value,
+   [data-theme='business'] .react-select-container .react-select__multi-value__label {
+      @apply text-neutral-200 bg-neutral-700;
+   }
+
+   [data-theme='business'] .react-select-container .react-select__multi-value__remove:hover {
+      @apply text-neutral-400 bg-neutral-700;
+   }
+}

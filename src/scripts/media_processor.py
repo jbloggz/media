@@ -34,7 +34,6 @@ import datetime
 import binascii
 from pathlib import Path
 from typing import Optional, Dict, List
-import pytz
 import psycopg
 import ffmpeg
 import av
@@ -54,7 +53,7 @@ class FileMetadata(BaseModel):
     duration: int | None = None     # Duration in milliseconds (for videos)
     latitude: int | None = None     # Latitude in degrees (-90 -> 90)
     longitude: int | None = None    # Longitude in degrees (-180 -> 180)
-    make: str | None = None         # Make of the deivce that created the file
+    make: str | None = None         # Make of the device that created the file
     model: str | None = None        # Model of the device that created the file
     sha256: str = ''                # SHA256 checksum of the file
     thumbnail: bytes = b''          # Thumbnail of the file

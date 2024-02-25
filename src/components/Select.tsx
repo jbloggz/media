@@ -1,0 +1,31 @@
+/**
+ * MIT License
+ *
+ * Author: Josef Barnes
+ *
+ * A wrapper around rect-select for custom behaviour
+ */
+'use client';
+
+import { useState } from 'react';
+import ReactSelect, { Props } from 'react-select';
+
+const Select = (props: Props) => {
+   const [menuIsOpen, setMenuIsOpen] = useState(false);
+
+   return (
+      <div className="relative">
+         <ReactSelect
+            onFocus={() => setMenuIsOpen(true)}
+            onBlur={() => setMenuIsOpen(false)}
+            menuIsOpen={menuIsOpen}
+            className="react-select-container"
+            classNamePrefix="react-select"
+            {...props}
+         />
+         <div className="opacity-0 h-12 w-9 absolute top-0 right-px hover:cursor-pointer" onClick={() => setMenuIsOpen(!menuIsOpen)}></div>
+      </div>
+   );
+};
+
+export default Select;
