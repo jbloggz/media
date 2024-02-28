@@ -8,9 +8,11 @@
 'use client';
 
 import { useState } from 'react';
-import ReactSelect, { Props } from 'react-select';
+import ReactSelect, { GroupBase, Props } from 'react-select';
 
-const Select = (props: Props) => {
+const Select = <Option, IsMulti extends boolean = false, Group extends GroupBase<Option> = GroupBase<Option>>(
+   props: Props<Option, IsMulti, Group>
+) => {
    const [menuIsOpen, setMenuIsOpen] = useState(false);
 
    return (
