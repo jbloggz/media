@@ -41,3 +41,55 @@ interface ThumbVideoMeta {
 
 /* Metadata for a media thumbnail */
 type ThumbMeta = ThumbImageMeta | ThumbVideoMeta;
+
+
+/* Search filters for the gallery */
+interface SearchFilter {
+   /* The media type */
+   type?: string[];
+
+   /* Minimum video duration */
+   camera?: string[];
+
+   /* Minimum video duration in seconds */
+   durationMin?: number;
+
+   /* Maximum video duration in seconds */
+   durationMax?: number;
+
+   /* Minimum height in pixels */
+   heightMin?: number;
+
+   /* Maximum height in pixels */
+   heightMax?: number;
+
+   /* Minimum width in pixels */
+   widthMin?: number;
+
+   /* Maximum width in pixels */
+   widthMax?: number;
+
+   /* Minimum file size in bytes */
+   sizeMin?: number;
+
+   /* Maximum file size in bytes */
+   sizeMax?: number;
+
+   /* GPS coordinates (lat,lng) */
+   location?: string;
+
+   /* Location radius in km */
+   radius?: number;
+
+}
+
+/* An option for a select input */
+interface SelectOption {
+   /* The lable to display */
+   label: string;
+
+   /* The internal value */
+   value: string;
+}
+
+

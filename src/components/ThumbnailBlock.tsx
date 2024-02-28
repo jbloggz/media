@@ -15,7 +15,7 @@ import { ThumbnailImage } from '.';
 interface ThumbnailBlockProps {
    className?: string;
    block: MediaBlock;
-   query: number;
+   query: string;
 }
 
 const getBlockHeading = (day: string): string => {
@@ -24,7 +24,7 @@ const getBlockHeading = (day: string): string => {
 };
 
 const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function ThumbnailBlock(props, ref) {
-   const api = useAPI<ThumbMeta[]>({ url: `/api/thumbmeta?q=${props.query}&day=${props.block.day}` });
+   const api = useAPI<ThumbMeta[]>({ url: `/api/thumbmeta?day=${props.block.day}&${props.query}` });
 
    useEffect(() => {
       if (api.error) {

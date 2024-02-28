@@ -7,25 +7,60 @@
  */
 'use client';
 
-import { useRef, useState } from 'react';
+import { useReducer, useRef, useState } from 'react';
+import { Select } from '@/components';
+import { useAPI } from '@/hooks';
 
 interface SearchDialogProps {
-   query: string;
-   setQuery: (query: string) => void;
+   filter: SearchFilter;
+   setFilter: (f: SearchFilter) => void;
 }
 
+const searchReducer = (current: SearchFilter, filter: SearchFilter | null): SearchFilter => {
+   return filter
+      ? {
+           ...current,
+           ...filter,
+        }
+      : {};
+};
+
 const SearchDialog = (props: SearchDialogProps) => {
-   const [query, setQuery] = useState(props.query);
    const dialogRef = useRef<HTMLDialogElement>(null);
+   const [activeTab, setActiveTab] = useState('media');
+   const [filter, dispatchFilter] = useReducer(searchReducer, props.filter);
+
+   const typeQuery = useAPI<string[]>({ url: '/api/searchOptions?field=type' });
+   const camerQuery = useAPI<string[]>({ url: '/api/searchOptions?field=make,model' });
+   const typeOptions: SelectOption[] = typeQuery.data ? typeQuery.data.map(v => ({label: v, value: v})) : [];
+   const cameraOptions: SelectOption[] = camerQuery.data ? camerQuery.data.map(v => ({label: v, value: v})) : [];
+
+   const submit = () => {
+      props.setFilter(filter);
+   };
+
+   const cancel = () => {
+      /* Reset back the previous search filter */
+      dispatchFilter(props.filter);
+   };
+
+   const show = () => {
+      /* Show the modal, but make sure no inputs are focussed */
+      if (dialogRef.current) {
+         dialogRef.current.showModal();
+         dialogRef.current.querySelectorAll('input').forEach((elem) => elem.blur());
+      }
+   };
 
    const reset = () => {
-      props.setQuery('');
-      setQuery('');
+      /* Clear the filter */
+      dispatchFilter(null);
+      props.setFilter({});
    };
 
    return (
       <div className="fixed top-3 right-16">
-         <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={() => dialogRef.current && dialogRef.current.showModal()}>
+         <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={show}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-5 h-5 stroke-current">
                <path
                   d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z"
@@ -35,7 +70,7 @@ const SearchDialog = (props: SearchDialogProps) => {
                />
             </svg>
          </button>
-         {query && (
+         {Object.keys(props.filter).length > 0 && (
             <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={reset}>
                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -43,26 +78,202 @@ const SearchDialog = (props: SearchDialogProps) => {
             </button>
          )}
          <dialog ref={dialogRef} className="modal">
-            <div className="modal-box">
-               <div className="container px-8">
-                  <h1 className="text-xl pb-4 font-bold">Search</h1>
-                  <label className="input input-bordered flex items-center gap-2 max-w-xs mb-5">
-                     <input type="text" className="grow bg-inherit" placeholder="Search" onChange={(e) => setQuery(e.target.value)} value={query} />
-                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70">
-                        <path
-                           fillRule="evenodd"
-                           d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
-                           clipRule="evenodd"
+            <div className="modal-box flex flex-col w-full h-full max-h-full max-w-full md:max-w-2xl md:max-h-[750px]">
+               <div className="container space-y-5">
+                  <h1 className="text-xl font-bold">Search</h1>
+
+                  <div role="tablist" className="tabs tabs-lifted">
+                     <a role="tab" className={`tab ${activeTab == 'media' ? 'tab-active' : ''}`} onClick={() => setActiveTab('media')}>
+                        Media
+                     </a>
+                     <a role="tab" className={`tab ${activeTab == 'file' ? 'tab-active' : ''}`} onClick={() => setActiveTab('file')}>
+                        File
+                     </a>
+                     <a role="tab" className={`tab ${activeTab == 'location' ? 'tab-active' : ''}`} onClick={() => setActiveTab('location')}>
+                        Location
+                     </a>
+                     <a role="tab" className={`tab ${activeTab == 'people' ? 'tab-active' : ''}`} onClick={() => setActiveTab('people')}>
+                        People
+                     </a>
+                  </div>
+
+                  <div className={`${activeTab === 'media' ? 'block' : 'hidden'}`}>
+                     <div className="form-control w-full max-w-xs">
+                        <div className="label">
+                           <span className="label-text">Media Type</span>
+                        </div>
+                        <Select
+                           name="type"
+                           placeholder="Select..."
+                           isMulti
+                           options={typeOptions}
+                           value={typeOptions.filter((v) => filter.type?.includes(v.value))}
+                           onChange={(v: readonly SelectOption[]) => dispatchFilter({type: v.map((opt) => opt.value)})}
                         />
-                     </svg>
-                  </label>
+                     </div>
+
+                     <label className="form-control w-full">
+                        <div className="label">
+                           <span className="label-text">Video Duration (seconds)</span>
+                        </div>
+                        <div className="flex w-full">
+                           <input
+                              name="durationMin"
+                              type="number"
+                              value={filter.durationMin || ''}
+                              onChange={(e) => dispatchFilter({ durationMin: +e.target.value })}
+                              min={0}
+                              placeholder="min"
+                              className="input input-bordered max-w-32"
+                           />
+                           <span className="mx-2 my-auto">to</span>
+                           <input
+                              name="durationMax"
+                              type="number"
+                              value={filter.durationMax || ''}
+                              onChange={(e) => dispatchFilter({ durationMax: +e.target.value })}
+                              min={0}
+                              placeholder="max"
+                              className="input input-bordered max-w-32"
+                           />
+                        </div>
+                     </label>
+
+                     <div className="form-control w-full max-w-xs">
+                        <div className="label">
+                           <span className="label-text">Camera (make/model)</span>
+                        </div>
+                        <Select
+                           name="camera"
+                           placeholder="Select..."
+                           isMulti
+                           options={cameraOptions}
+                           value={cameraOptions.filter((v) => filter.camera?.includes(v.value))}
+                           onChange={(v: readonly SelectOption[]) => dispatchFilter({camera: v.map((opt) => opt.value)})}
+                        />
+                     </div>
+                  </div>
+
+                  <div className={`${activeTab === 'file' ? 'block' : 'hidden'}`}>
+                     <label className="form-control w-full">
+                        <div className="label">
+                           <span className="label-text">Height (pixels)</span>
+                        </div>
+                        <div className="flex w-full">
+                           <input
+                              name="heightMin"
+                              type="number"
+                              value={filter.heightMin || ''}
+                              onChange={(e) => dispatchFilter({ heightMin: +e.target.value })}
+                              placeholder="min"
+                              className="input input-bordered max-w-32"
+                           />
+                           <span className="mx-2 my-auto">to</span>
+                           <input
+                              name="heightMax"
+                              type="number"
+                              value={filter.heightMax || ''}
+                              onChange={(e) => dispatchFilter({ heightMax: +e.target.value })}
+                              placeholder="max"
+                              className="input input-bordered max-w-32"
+                           />
+                        </div>
+                     </label>
+
+                     <label className="form-control w-full">
+                        <div className="label">
+                           <span className="label-text">Width (pixels)</span>
+                        </div>
+                        <div className="flex w-full">
+                           <input
+                              name="widthMin"
+                              type="number"
+                              value={filter.widthMin || ''}
+                              onChange={(e) => dispatchFilter({ widthMin: +e.target.value })}
+                              placeholder="min"
+                              className="input input-bordered max-w-32"
+                           />
+                           <span className="mx-2 my-auto">to</span>
+                           <input
+                              name="widthMax"
+                              type="number"
+                              value={filter.widthMax || ''}
+                              onChange={(e) => dispatchFilter({ widthMax: +e.target.value })}
+                              placeholder="max"
+                              className="input input-bordered max-w-32"
+                           />
+                        </div>
+                     </label>
+
+                     <label className="form-control w-full">
+                        <div className="label">
+                           <span className="label-text">File Size (bytes)</span>
+                        </div>
+                        <div className="flex w-full">
+                           <input
+                              name="sizeMin"
+                              type="number"
+                              value={filter.sizeMin || ''}
+                              onChange={(e) => dispatchFilter({ sizeMin: +e.target.value })}
+                              placeholder="min"
+                              className="input input-bordered max-w-32"
+                           />
+                           <span className="mx-2 my-auto">to</span>
+                           <input
+                              name="SizeMax"
+                              type="number"
+                              value={filter.sizeMax || ''}
+                              onChange={(e) => dispatchFilter({ sizeMax: +e.target.value })}
+                              placeholder="max"
+                              className="input input-bordered max-w-32"
+                           />
+                        </div>
+                     </label>
+                  </div>
+
+                  <div className={`${activeTab === 'location' ? 'block' : 'hidden'}`}>
+                     <label className="form-control w-full max-w-xs">
+                        <div className="label">
+                           <span className="label-text">GPS Location (degrees)</span>
+                        </div>
+                        <input
+                           name="location"
+                           type="text"
+                           value={filter.location || ''}
+                           onChange={(e) => dispatchFilter({ location: e.target.value })}
+                           placeholder="latitude,longitude"
+                           className="input input-bordered"
+                        />
+                     </label>
+
+                     <label className="form-control w-full max-w-xs">
+                        <div className="label">
+                           <span className="label-text">Radius (km)</span>
+                        </div>
+                        <input
+                           name="radius"
+                           type="number"
+                           value={filter.radius || ''}
+                           onChange={(e) => dispatchFilter({ radius: +e.target.value })}
+                           placeholder="1"
+                           className="input input-bordered w-24"
+                        />
+                     </label>
+                  </div>
+
+                  <div className={`${activeTab === 'people' ? 'block' : 'hidden'}`}>
+                     <p>Coming soon!</p>
+                  </div>
                </div>
-               <div className="modal-action">
+
+               <div className="modal-action mt-auto">
                   <form method="dialog">
-                     <button className="btn" onClick={() => props.setQuery(query)}>
+                     <button className="btn" onClick={submit}>
                         Search
                      </button>
-                     <button className="btn">Cancel</button>
+                     <button className="btn ml-4" onClick={cancel}>
+                        Cancel
+                     </button>
                   </form>
                </div>
             </div>

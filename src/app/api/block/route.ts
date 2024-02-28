@@ -6,12 +6,13 @@
  * The route to download a list of blocks with a given filter
  */
 
-import db from '@/database';
 import { NextRequest, NextResponse } from 'next/server';
+import db, { searchParamsToSQL } from '@/database';
 
 export const GET = async (request: NextRequest) => {
    const searchParams = request.nextUrl.searchParams;
-   const query = searchParams.get('q') || '';
+   const [filters, bindings] = searchParamsToSQL(searchParams);
+   console.log(filters);
 
    try {
       const result = await db.query(
@@ -19,13 +20,14 @@ export const GET = async (request: NextRequest) => {
          WITH GroupedData AS (
             SELECT TO_CHAR(TO_TIMESTAMP(timestamp) AT TIME ZONE '${process.env['TIMEZONE']}', 'YYYY-MM-DD') AS day, COUNT(*) AS count
             FROM media
-            ${query !== '' ? 'WHERE ' + query : ''}
+            ${filters !== '' ? `WHERE ${filters}` : ''}
             GROUP BY day
          )
          SELECT day, CAST(count AS INTEGER), CAST(SUM(count) OVER (ORDER BY day DESC) AS INTEGER) AS total
          FROM GroupedData
          ORDER BY day DESC
-         `
+         `,
+         bindings
       );
 
       return NextResponse.json(result.rows);
