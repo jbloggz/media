@@ -351,14 +351,14 @@ def load_image_metadata(file: FileMetadata):
     if exif['Model']:
         file.model = exif['Model']
 
-    if exif['GPSInfo']['GPSLatitudeRef'] is not None and exif['GPSInfo']['GPSLongitude'] is not None:
+    if exif['GPSInfo']['GPSLatitude'] is not None and exif['GPSInfo']['GPSLongitude'] is not None:
         lat = list(exif['GPSInfo']['GPSLatitude'])
         lng = list(exif['GPSInfo']['GPSLongitude'])
         if len(lat) > 2 and len(lng) > 2:
             lat_sign = 1 if exif['GPSInfo']['GPSLatitudeRef'] == 'N' else -1
             lng_sign = 1 if exif['GPSInfo']['GPSLongitudeRef'] == 'E' else -1
-            file.latitude = lat[0] + lat[1] / 60 + (lat[2] / 3600) * lat_sign
-            file.longitude = lng[0] + lng[1] / 60 + (lng[2] / 3600) * lng_sign
+            file.latitude = (lat[0] + lat[1] / 60 + lat[2] / 3600) * lat_sign
+            file.longitude = (lng[0] + lng[1] / 60 + lng[2] / 3600) * lng_sign
 
 
 def get_existing_media(db: psycopg.Cursor) -> Dict[Path, int]:
@@ -404,9 +404,9 @@ def validate_file(file: FileMetadata):
         raise ValueError(f'Validation failed: Invalid video duration of {file.duration}: {file.path}')
     if file.type == 'image' and file.duration is not None:
         raise ValueError(f'Validation failed: Duration must not be set for images: {file.duration}: {file.path}')
-    if not (file.latitude is None or ((isinstance(file.latitude, int) or isinstance(file.latitude, float)) and file.latitude > 0)):
+    if not (file.latitude is None or ((isinstance(file.latitude, int) or isinstance(file.latitude, float)))):
         raise ValueError(f'Validation failed: Invalid latitude of {file.latitude}: {file.path}')
-    if not (file.latitude is None or ((isinstance(file.latitude, int) or isinstance(file.latitude, float)) and file.latitude > 0)):
+    if not (file.longitude is None or ((isinstance(file.longitude, int) or isinstance(file.longitude, float)))):
         raise ValueError(f'Validation failed: Invalid longitude of {file.longitude}: {file.path}')
     if file.make is not None and (not isinstance(file.make, str) or file.make == ''):
         raise ValueError(f'Validation failed: Invalid make of {file.make}: {file.path}')
