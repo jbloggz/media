@@ -42,7 +42,6 @@ interface ThumbVideoMeta {
 /* Metadata for a media thumbnail */
 type ThumbMeta = ThumbImageMeta | ThumbVideoMeta;
 
-
 /* Search filters for the gallery */
 interface SearchFilter {
    /* The media type */
@@ -80,7 +79,6 @@ interface SearchFilter {
 
    /* Location radius in km */
    radius?: number;
-
 }
 
 /* An option for a select input */

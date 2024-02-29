@@ -7,39 +7,16 @@
  */
 'use client';
 
-import { Gallery, SearchDialog } from '@/components';
-import { useAPI } from '@/hooks';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-/**
- * Build the query parameters based on the seach filters
- *
- * @param filter  The search filters selected
- *
- * @returns A url query parameter string
- */
-const buildQuery = (filter: SearchFilter): string => {
-   const params = new URLSearchParams();
-
-   for (const [key, value] of Object.entries(filter)) {
-      if (Array.isArray(value)) {
-         for (const opt of value) {
-            params.append(key, opt.toString());
-         }
-      } else {
-         params.append(key, value.toString());
-      }
-   }
-
-   return params.toString();
-};
+import { Gallery, SearchDialog } from '@/components';
+import { SearchContext } from '@/context';
+import { useSearchAPI } from '@/hooks';
 
 const Home = () => {
    const [filter, setFilter] = useState<SearchFilter>({});
-   const query = buildQuery(filter);
-   const api = useAPI<MediaBlock[]>({ url: `/api/block?${query}` });
+   const api = useSearchAPI<MediaBlock[]>({ url: '/api/block', filter });
 
    useEffect(() => {
       if (api.error) {
@@ -58,7 +35,9 @@ const Home = () => {
          ) : (
             api.data && (
                <>
-                  <Gallery blocks={api.data} query={query} />
+                  <SearchContext.Provider value={filter}>
+                     <Gallery blocks={api.data} />
+                  </SearchContext.Provider>
                   <SearchDialog filter={filter} setFilter={setFilter} />
                </>
             )

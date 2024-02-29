@@ -9,13 +9,13 @@
 
 import { forwardRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { useAPI } from '@/hooks';
+import { useSearchAPI } from '@/hooks';
 import { ThumbnailImage } from '.';
 
 interface ThumbnailBlockProps {
    className?: string;
    block: MediaBlock;
-   query: string;
+   onImageClick?: (id: number) => void;
 }
 
 const getBlockHeading = (day: string): string => {
@@ -24,7 +24,7 @@ const getBlockHeading = (day: string): string => {
 };
 
 const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function ThumbnailBlock(props, ref) {
-   const api = useAPI<ThumbMeta[]>({ url: `/api/thumbmeta?day=${props.block.day}&${props.query}` });
+   const api = useSearchAPI<ThumbMeta[]>({ url: '/api/thumbmeta', params: new URLSearchParams({ day: props.block.day }) });
 
    useEffect(() => {
       if (api.error) {
