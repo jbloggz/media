@@ -32,16 +32,18 @@ const SearchDialog = (props: SearchDialogProps) => {
 
    const typeQuery = useAPI<string[]>({ url: '/api/searchOptions?field=type' });
    const camerQuery = useAPI<string[]>({ url: '/api/searchOptions?field=make,model' });
-   const typeOptions: SelectOption[] = typeQuery.data ? typeQuery.data.map(v => ({label: v, value: v})) : [];
-   const cameraOptions: SelectOption[] = camerQuery.data ? camerQuery.data.map(v => ({label: v, value: v})) : [];
+   const typeOptions: SelectOption[] = typeQuery.data ? typeQuery.data.map((v) => ({ label: v, value: v })) : [];
+   const cameraOptions: SelectOption[] = camerQuery.data ? camerQuery.data.map((v) => ({ label: v, value: v })) : [];
 
    const submit = () => {
       props.setFilter(filter);
+      dialogRef.current && dialogRef.current.close();
    };
 
    const cancel = () => {
       /* Reset back the previous search filter */
       dispatchFilter(props.filter);
+      dialogRef.current && dialogRef.current.close();
    };
 
    const show = () => {
@@ -108,7 +110,7 @@ const SearchDialog = (props: SearchDialogProps) => {
                            isMulti
                            options={typeOptions}
                            value={typeOptions.filter((v) => filter.type?.includes(v.value))}
-                           onChange={(v: readonly SelectOption[]) => dispatchFilter({type: v.map((opt) => opt.value)})}
+                           onChange={(v: readonly SelectOption[]) => dispatchFilter({ type: v.map((opt) => opt.value) })}
                         />
                      </div>
 
@@ -149,7 +151,7 @@ const SearchDialog = (props: SearchDialogProps) => {
                            isMulti
                            options={cameraOptions}
                            value={cameraOptions.filter((v) => filter.camera?.includes(v.value))}
-                           onChange={(v: readonly SelectOption[]) => dispatchFilter({camera: v.map((opt) => opt.value)})}
+                           onChange={(v: readonly SelectOption[]) => dispatchFilter({ camera: v.map((opt) => opt.value) })}
                         />
                      </div>
                   </div>
@@ -267,14 +269,12 @@ const SearchDialog = (props: SearchDialogProps) => {
                </div>
 
                <div className="modal-action mt-auto">
-                  <form method="dialog">
-                     <button className="btn" onClick={submit}>
-                        Search
-                     </button>
-                     <button className="btn ml-4" onClick={cancel}>
-                        Cancel
-                     </button>
-                  </form>
+                  <button className="btn" onClick={submit}>
+                     Search
+                  </button>
+                  <button className="btn ml-4" onClick={cancel}>
+                     Cancel
+                  </button>
                </div>
             </div>
          </dialog>
