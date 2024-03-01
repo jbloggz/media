@@ -7,7 +7,7 @@
  */
 'use client';
 
-import { ImageDialog, Scrubber, ThumbnailBlock } from '@/components';
+import { MediaDialog, Scrubber, ThumbnailBlock } from '@/components';
 import { useThrottleFn } from '@/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -196,7 +196,7 @@ const Gallery = (props: GalleryProps) => {
                Visible Block = {props.blocks[visibleBlock].day}
             </p>
          )}
-         {selectedImage && <ImageDialog id={selectedImage} onClose={() => setSelectedImage(null)} />}
+         {selectedImage && <MediaDialog id={selectedImage} onClose={() => setSelectedImage(null)} />}
       </main>
    );
 };

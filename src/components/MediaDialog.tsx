@@ -17,7 +17,7 @@ interface ImageDialogProps {
    onClose: () => void;
 }
 
-const ImageDialog = (props: ImageDialogProps) => {
+const MediaDialog = (props: ImageDialogProps) => {
    const [id, setId] = useState(props.id);
    const api = useSearchAPI<Media & { prevId: number; nextId: number }>({ url: '/api/media', params: { id } });
 
@@ -97,4 +97,4 @@ const ImageDialog = (props: ImageDialogProps) => {
    );
 };
 
-export default ImageDialog;
+export default MediaDialog;
