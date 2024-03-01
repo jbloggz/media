@@ -6,7 +6,6 @@
  * PostgreSQL database connection pool
  */
 
-import moment from 'moment-timezone';
 import { Pool } from 'pg';
 
 const db = new Pool();
@@ -25,7 +24,6 @@ export const searchParamsToSQL = (params: URLSearchParams): [string, string[]] =
    const bindings: string[] = [];
    let idx = 1;
 
-   /* Multi values */
    const types = params.getAll('type');
    if (types.length > 0) {
       filters.push(`type IN (${types.map(() => `$${idx++}`).join()})`);
@@ -55,26 +53,31 @@ export const searchParamsToSQL = (params: URLSearchParams): [string, string[]] =
       filters.push(`height >= $${idx++}`);
       bindings.push(heightMin);
    }
+
    const heightMax = params.get('heightMax');
    if (heightMax) {
       filters.push(`height <= $${idx++}`);
       bindings.push(heightMax);
    }
+
    const widthMin = params.get('widthMin');
    if (widthMin) {
       filters.push(`width >= $${idx++}`);
       bindings.push(widthMin);
    }
+
    const widthMax = params.get('widthMax');
    if (widthMax) {
       filters.push(`width <= $${idx++}`);
       bindings.push(widthMax);
    }
+
    const sizeMin = params.get('sizeMin');
    if (sizeMin) {
       filters.push(`size >= $${idx++}`);
       bindings.push(sizeMin);
    }
+
    const sizeMax = params.get('sizeMax');
    if (sizeMax) {
       filters.push(`size <= $${idx++}`);
@@ -89,14 +92,6 @@ export const searchParamsToSQL = (params: URLSearchParams): [string, string[]] =
       console.log(lat, lng, degreeDiff);
       filters.push(`latitude BETWEEN ${lat - degreeDiff} AND ${lat + degreeDiff}`);
       filters.push(`longitude BETWEEN ${lng - degreeDiff} AND ${lng + degreeDiff}`);
-   }
-
-   const day = params.get('day');
-   if (day) {
-      const tzDay = moment.tz(day, process.env['TIMEZONE'] || '');
-      const start = tzDay.clone().startOf('day');
-      const end = tzDay.clone().endOf('day');
-      filters.push(`timestamp BETWEEN ${start.unix()} AND ${end.unix()}`);
    }
 
    return [filters.join(' AND '), bindings];
