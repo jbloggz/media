@@ -90,4 +90,41 @@ interface SelectOption {
    value: string;
 }
 
+/* A media file and it's properties */
+interface Media {
+   /* The media id */
+   id: number;
 
+   /* The file location on disk */
+   path: string;
+
+   /* The media type */
+   type: string;
+
+   /* The unix timestamp of the media */
+   timestamp: Date;
+
+   /* File size in bytes */
+   size: number;
+
+   /* Width in pixels */
+   width: number;
+
+   /* Height in pixels */
+   height: number;
+
+   /* Video duration in milliseconds */
+   duration?: number;
+
+   /* GPS latitude in degrees (-90 -> 90) */
+   latitude?: number;
+
+   /* GPS longitude in degrees (-180 -> 180) */
+   longitude?: number;
+
+   /* Camera make */
+   make?: string;
+
+   /* Camera model */
+   model?: string;
+}

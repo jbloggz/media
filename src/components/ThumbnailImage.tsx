@@ -12,6 +12,7 @@ import { useRef, useState } from 'react';
 
 interface ThumbnailImageProps {
    meta?: ThumbMeta;
+   onClick?: (id: number) => void;
 }
 
 const prettyDuration = (duration: number): string => {
@@ -38,7 +39,7 @@ const ThumbnailImage = (props: ThumbnailImageProps) => {
    }
 
    return (
-      <div className="relative w-full aspect-square overflow-hidden">
+      <div className="relative w-full aspect-square overflow-hidden" onClick={() => props.onClick && props.meta?.id && props.onClick(props.meta.id)}>
          <div ref={container} className="flex items-center justify-center w-full h-full bg-gray-300 rounded dark:bg-gray-700 relative group">
             <svg
                className="w-10 h-10 text-gray-200 dark:text-gray-600"

@@ -10,12 +10,14 @@ import { useContext } from 'react';
 import { useAPI } from '.';
 import { SearchContext } from '@/context';
 
+type Params = Record<string, string | number | (string | number)[]>;
+
 interface SearchRequest {
    /* The url to search */
    url: string;
 
    /* Any extra url parameters to add */
-   params?: URLSearchParams;
+   params?: Params;
 
    /* Override the context provided filters */
    filter?: SearchFilter;
@@ -28,25 +30,26 @@ interface SearchRequest {
  *
  * @returns A url query parameter string
  */
-const buildQuery = (filter: SearchFilter, extra_params?: URLSearchParams): string => {
-   const params = extra_params || new URLSearchParams();
+const buildQuery = (filter: SearchFilter, params: Params): string => {
+   const allParams = {...params, ...filter};
 
-   for (const [key, value] of Object.entries(filter)) {
+   const urlParams = new URLSearchParams();
+   for (const [key, value] of Object.entries(allParams)) {
       if (Array.isArray(value)) {
          for (const opt of value) {
-            params.append(key, opt.toString());
+            urlParams.append(key, opt.toString());
          }
       } else {
-         params.append(key, value.toString());
+         urlParams.append(key, value.toString());
       }
    }
 
-   return params.toString();
+   return urlParams.toString();
 };
 
 const useSearchAPI = <T>(req: SearchRequest) => {
    const filter = useContext(SearchContext);
-   const query = buildQuery(req.filter || filter, req.params);
+   const query = buildQuery(req.filter || filter, req.params || {});
    return useAPI<T>({ url: `${req.url}?${query}` });
 };
 

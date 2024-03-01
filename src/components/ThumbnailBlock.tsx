@@ -24,7 +24,7 @@ const getBlockHeading = (day: string): string => {
 };
 
 const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function ThumbnailBlock(props, ref) {
-   const api = useSearchAPI<ThumbMeta[]>({ url: '/api/thumbmeta', params: new URLSearchParams({ day: props.block.day }) });
+   const api = useSearchAPI<ThumbMeta[]>({ url: '/api/thumbmeta', params: { day: props.block.day } });
 
    useEffect(() => {
       if (api.error) {
@@ -37,7 +37,7 @@ const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function 
          {props.block.day && <h1 className="text-xl font-bold p-2">{getBlockHeading(props.block.day)}</h1>}
          <div className="pb-1 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
             {api.data
-               ? api.data.map((meta) => <ThumbnailImage key={meta.id} meta={meta} />)
+               ? api.data.map((meta) => <ThumbnailImage key={meta.id} meta={meta} onClick={props.onImageClick} />)
                : Array.from(Array(props.block.count)).map((_, i) => <ThumbnailImage key={i} />)}
          </div>
       </div>

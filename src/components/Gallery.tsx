@@ -7,7 +7,7 @@
  */
 'use client';
 
-import { Scrubber, ThumbnailBlock } from '@/components';
+import { ImageDialog, Scrubber, ThumbnailBlock } from '@/components';
 import { useThrottleFn } from '@/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -36,6 +36,7 @@ const Gallery = (props: GalleryProps) => {
    const [blockRange, setBlockRange] = useState<DisplayRange>({ start: 0, end: 1 });
    const [visibleBlock, setVisibleBlock] = useState(0);
    const [isScrubbing, setIsScrubbing] = useState(false);
+   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
    /* Called when the user is scrubbing */
    const onScrub = (idx: number) => {
@@ -195,6 +196,7 @@ const Gallery = (props: GalleryProps) => {
                Visible Block = {props.blocks[visibleBlock].day}
             </p>
          )}
+         {selectedImage && <ImageDialog id={selectedImage} onClose={() => setSelectedImage(null)} />}
       </main>
    );
 };
