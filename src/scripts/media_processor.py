@@ -40,7 +40,7 @@ import av
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from PIL.ExifTags import TAGS, GPSTAGS
-from PIL import Image, TiffImagePlugin
+from PIL import Image, TiffImagePlugin, ImageOps
 
 
 class FileMetadata(BaseModel):
@@ -206,7 +206,7 @@ def generate_thumbnail(file: FileMetadata):
         file: The file to generate the thumb
     '''
     if file.type == 'image':
-        img = Image.open(file.path)
+        img = ImageOps.exif_transpose(Image.open(file.path))
     elif file.type == 'video':
         frames = av.open(file.path).decode(video=0)
         img = next(frames).to_image()
