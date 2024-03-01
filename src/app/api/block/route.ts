@@ -12,7 +12,6 @@ import db, { searchParamsToSQL } from '@/database';
 export const GET = async (request: NextRequest) => {
    const searchParams = request.nextUrl.searchParams;
    const [filters, bindings] = searchParamsToSQL(searchParams);
-   console.log(filters);
 
    try {
       const result = await db.query(
