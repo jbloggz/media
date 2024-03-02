@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.1",
+    "mime": "^4.0.1",
     "moment-timezone": "^0.5.45",
     "next": "14.0.2",
     "next-auth": "^4.24.5",
@@ -17,7 +19,9 @@
     "react-dom": "^18",
     "react-draggable": "^4.4.6",
     "react-select": "^5.8.0",
+    "react-swipeable": "^7.0.1",
     "react-toastify": "^10.0.4",
+    "sharp": "^0.33.2",
     "swr": "^2.2.4"
   },
   "devDependencies": {

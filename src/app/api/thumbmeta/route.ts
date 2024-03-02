@@ -27,7 +27,7 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json({ message: 'At least 1 filter must be provided for thumbnail metadata' }, { status: 400 });
    }
    try {
-      const result = await db.query(`SELECT id, type, duration FROM media WHERE ${filters} ORDER BY timestamp DESC`, bindings);
+      const result = await db.query(`SELECT id, type, duration FROM media WHERE ${filters} ORDER BY timestamp DESC, id DESC`, bindings);
       return NextResponse.json(result.rows.map((row) => ({ type: row.type, id: +row.id, duration: +row.duration })));
    } catch (e) {
       return NextResponse.json({ message: 'Cannot find thumbnail metadata' }, { status: 404 });

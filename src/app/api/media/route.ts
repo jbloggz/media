@@ -22,8 +22,8 @@ export const GET = async (request: NextRequest) => {
    const query = `
       WITH data AS (
          SELECT id, path, type, timestamp, size, width, height, duration, latitude, longitude, make, model,
-         LAG(id) OVER (ORDER BY timestamp) AS "prevId",
-         LEAD(id) OVER (ORDER BY timestamp) AS "nextId"
+         LEAD(id) OVER (ORDER BY timestamp DESC, id DESC) AS "prevId",
+         LAG(id) OVER (ORDER BY timestamp DESC, id DESC) AS "nextId"
          FROM media
          ${filters !== '' ? `WHERE ${filters}` : ''}
       )
