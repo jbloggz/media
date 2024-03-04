@@ -162,17 +162,6 @@ const MediaDialog = (props: ImageDialogProps) => {
                   )}
                </>
             )}
-            <p className="fixed bottom-0 right-3">
-               ID = {state.id}
-               <br />
-               Prev = {state.prev?.id}
-               <br />
-               Curr = {state.current?.id}
-               <br />
-               Next = {state.next?.id}
-               <br />
-               SwipeDir = {state.swipeDir}
-            </p>
          </div>
       </dialog>
    );

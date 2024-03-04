@@ -163,11 +163,6 @@ const Gallery = (props: GalleryProps) => {
       }
    }, []);
 
-   const debugScrollTop = Math.round(mainElemRef.current?.scrollTop || 0);
-   const debugScrollHeight = mainElemRef.current?.scrollHeight || 0;
-   const debugClientHeight = mainElemRef.current?.clientHeight || 0;
-   const debugScrollBottom = Math.round(debugScrollTop + debugClientHeight);
-
    return (
       <main className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar" ref={mainElemRef}>
          {props.blocks.slice(blockRange.start, blockRange.end).map((block, idx) => (
@@ -187,15 +182,6 @@ const Gallery = (props: GalleryProps) => {
             onScrubStart={() => setIsScrubbing(true)}
             onScrubStop={() => setIsScrubbing(false)}
          />
-         {props.blocks.length > 0 && (
-            <p className="fixed bottom-0 left-3">
-               Scroll = ({debugScrollTop}-{debugScrollBottom})/{debugScrollHeight}
-               <br />
-               Block = ({blockRange.start}-{blockRange.end})/{props.blocks.length}
-               <br />
-               Visible Block = {props.blocks[visibleBlock].day}
-            </p>
-         )}
          {selectedImage && <MediaDialog id={selectedImage} onClose={() => setSelectedImage(null)} />}
       </main>
    );
