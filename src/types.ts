@@ -128,3 +128,15 @@ interface Media {
    /* Camera model */
    model?: string;
 }
+
+/* The API response for the media endpoint */
+interface APIMedia {
+   /* The previous media entry */
+   prev?: Media;
+
+   /* The selected media entry */
+   current: Media;
+
+   /* The next media entry */
+   next?: Media;
+}

@@ -19,26 +19,39 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json({ message: 'No id provided' }, { status: 400 });
    }
 
-   const query = `
+   const idQuery = `
       WITH data AS (
-         SELECT id, path, type, timestamp, size, width, height, duration, latitude, longitude, make, model,
-         LEAD(id) OVER (ORDER BY timestamp DESC, id DESC) AS "prevId",
-         LAG(id) OVER (ORDER BY timestamp DESC, id DESC) AS "nextId"
+         SELECT id As current, LAG(id) OVER (ORDER BY timestamp DESC, id DESC) AS prev, LEAD(id) OVER (ORDER BY timestamp DESC, id DESC) AS next
          FROM media
          ${filters !== '' ? `WHERE ${filters}` : ''}
       )
-      SELECT * FROM data WHERE id = ${+id}
+      SELECT * FROM data WHERE current = ${+id}
+   `;
+
+   const dataQuery = `
+      SELECT id, path, type, timestamp, size, width, height, duration, latitude, longitude, make, model
+      FROM media
+      WHERE id IN ($1, $2, $3)
    `;
 
    try {
-      const result = await db.query(query, bindings);
+      const ids = (await db.query(idQuery, bindings)).rows[0];
 
-      if (result.rows.length === 0) {
+      if (!ids) {
          return NextResponse.json({ message: 'Cannot find media' }, { status: 404 });
       }
 
-      return NextResponse.json(result.rows[0]);
+      const media = (await db.query(dataQuery, [ids.prev, ids.current, ids.next])).rows.reduce((acc, obj) => {
+         acc[obj.id === ids.prev ? 'prev' : obj.id === ids.current ? 'current' : 'next'] = obj;
+         return acc;
+      }, {});
+
+      return NextResponse.json(media, {
+         headers: {
+            'Cache-Control': 'max-age=86400',
+         },
+      });
    } catch (e) {
-      return NextResponse.json({ message: 'Database query failed' }, { status: 500 });
+      return NextResponse.json({ message: 'Database query failed' + e }, { status: 500 });
    }
 };

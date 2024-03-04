@@ -11,6 +11,7 @@ import Gallery from './Gallery';
 import ImageSkeleton from './ImageSkeleton';
 import Loader from './Loader';
 import MediaDialog from './MediaDialog';
+import MediaItem from './MediaItem';
 import NavBar from './NavBar';
 import NavUserMenu from './NavUserMenu';
 import Scrubber from './Scrubber';
@@ -26,6 +27,7 @@ export {
    ImageSkeleton,
    Loader,
    MediaDialog,
+   MediaItem,
    NavBar,
    NavUserMenu,
    Scrubber,
