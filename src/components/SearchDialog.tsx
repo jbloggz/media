@@ -10,6 +10,7 @@
 import { useReducer, useRef, useState } from 'react';
 import { Select } from '@/components';
 import { useAPI } from '@/hooks';
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface SearchDialogProps {
    filter: SearchFilter;
@@ -63,20 +64,11 @@ const SearchDialog = (props: SearchDialogProps) => {
    return (
       <div className="fixed top-3 right-16">
          <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={show}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-5 h-5 stroke-current">
-               <path
-                  d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-               />
-            </svg>
+            <MagnifyingGlassIcon className="w-6 h-6" />
          </button>
          {Object.keys(props.filter).length > 0 && (
             <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={reset}>
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-               </svg>
+               <XMarkIcon className="h-6 w-6" />
             </button>
          )}
          <dialog ref={dialogRef} className="modal">
