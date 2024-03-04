@@ -198,21 +198,14 @@ def calculate_sha256(file: FileMetadata):
     file.sha256 = sha256.hexdigest()
 
 
-def generate_thumbnail(file: FileMetadata):
+def generate_thumbnail(file: FileMetadata, img: Image):
     '''
     Generate a thumbnail for a media file
 
     Args:
         file: The file to generate the thumb
+        img: The image to generate the thumb from
     '''
-    if file.type == 'image':
-        img = ImageOps.exif_transpose(Image.open(file.path))
-    elif file.type == 'video':
-        frames = av.open(file.path).decode(video=0)
-        img = next(frames).to_image()
-    else:
-        raise TypeError(f'Invalid file type for {file.path}: {file.type}')
-
     size = min(img.width, img.height)
     box = ((img.width - size) // 2, (img.height - size) // 2, (img.width + size) // 2, (img.height + size) // 2)
     cropped = img.crop(box)
@@ -264,6 +257,14 @@ def load_video_metadata(file: FileMetadata):
     file.width = int(video_info['width'])
     file.height = int(video_info['height'])
     file.duration = int(float(video_info['duration']) * 1000)
+
+    frames = av.open(file.path).decode(video=0)
+    try:
+        rotation = int(video_info.get('tags', {}).get('rotate', 0))
+    except:
+        rotation = 0
+
+    generate_thumbnail(file, next(frames).to_image().rotate(-rotation))
 
 
 def decode_exif(data, key=None):
@@ -360,6 +361,8 @@ def load_image_metadata(file: FileMetadata):
             file.latitude = (lat[0] + lat[1] / 60 + lat[2] / 3600) * lat_sign
             file.longitude = (lng[0] + lng[1] / 60 + lng[2] / 3600) * lng_sign
 
+    generate_thumbnail(file, ImageOps.exif_transpose(Image.open(file.path)))
+
 
 def get_existing_media(db: psycopg.Cursor) -> Dict[Path, int]:
     '''
@@ -447,8 +450,6 @@ def process_file(file_path: Path) -> Optional[FileMetadata]:
         return None
 
     calculate_sha256(file)
-
-    generate_thumbnail(file)
 
     validate_file(file)
 
