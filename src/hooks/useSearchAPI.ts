@@ -21,6 +21,9 @@ interface SearchRequest {
 
    /* Override the context provided filters */
    filter?: SearchFilter;
+
+   /* Disable the query */
+   disabled?: boolean;
 }
 
 /**
@@ -50,7 +53,7 @@ const buildQuery = (filter: SearchFilter, params: Params): string => {
 const useSearchAPI = <T>(req: SearchRequest) => {
    const filter = useContext(SearchContext);
    const query = buildQuery(req.filter || filter, req.params || {});
-   return useAPI<T>({ url: `${req.url}?${query}` });
+   return useAPI<T>({ disabled: req.disabled, url: `${req.url}?${query}` });
 };
 
 export default useSearchAPI;
