@@ -8,6 +8,7 @@
 
 import AppDrawer from './AppDrawer';
 import Gallery from './Gallery';
+import ImageSkeleton from './ImageSkeleton';
 import Loader from './Loader';
 import MediaDialog from './MediaDialog';
 import NavBar from './NavBar';
@@ -22,6 +23,7 @@ import ThumbnailImage from './ThumbnailImage';
 export {
    AppDrawer,
    Gallery,
+   ImageSkeleton,
    Loader,
    MediaDialog,
    NavBar,
