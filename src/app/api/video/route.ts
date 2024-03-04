@@ -3,19 +3,47 @@
  *
  * Author: Josef Barnes
  *
- * The route to download a video
+ * The route to download/stream a video
  */
 
-import { readFileSync } from 'fs';
+import fs from 'fs';
 import { basename } from 'path';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import parseRange, { Range, Ranges } from 'range-parser';
 import mime from 'mime';
 import db from '@/database';
+
+async function* nodeStreamToIterator(stream: fs.ReadStream) {
+   for await (const chunk of stream) {
+      yield chunk;
+   }
+}
+
+const iteratorToStream = (iterator: AsyncGenerator<Uint8Array>): ReadableStream => {
+   return new ReadableStream({
+      async pull(controller) {
+         const { value, done } = await iterator.next();
+
+         if (done) {
+            controller.close();
+         } else {
+            controller.enqueue(new Uint8Array(value));
+         }
+      },
+   });
+};
+
+const streamFile = (path: string, range?: Range) => {
+   const fsStream = fs.createReadStream(path, range && { ...range });
+   return iteratorToStream(nodeStreamToIterator(fsStream));
+};
 
 export const GET = async (request: NextRequest) => {
    const searchParams = request.nextUrl.searchParams;
    const id = +(searchParams.get('id') || 0);
    const download = !!searchParams.get('download');
+   const headersList = headers();
 
    try {
       const result = await db.query('SELECT path FROM media WHERE id = $1', [id]);
@@ -24,18 +52,36 @@ export const GET = async (request: NextRequest) => {
       if (!type) {
          return NextResponse.json({ message: `Unknown mime type for ${path}` }, { status: 404 });
       }
-      const buf = readFileSync(path);
+
+      const stat = fs.statSync(path);
+      const fileSize = stat.size;
+      const rangeHeader = headersList.get('Range');
+
+      let range;
+      if (rangeHeader && rangeHeader.startsWith('bytes=')) {
+         const ranges = parseRange(fileSize, rangeHeader);
+         if (ranges === -1 || ranges === -2 || ranges.type !== 'bytes' || ranges.length !== 1) {
+            return NextResponse.json({ message: `Invalid range header: ${rangeHeader}` }, { status: 400 });
+         }
+         range = ranges[0];
+      }
+
+      const stream = streamFile(path, range);
 
       const headers: HeadersInit = {
          'Content-Type': type,
-         'Cache-Control': 'max-age=86400',
       };
+
+      if (range) {
+         headers['Content-Range'] = `bytes ${range.start}-${range.end}/${fileSize}`;
+         headers['Accept-Ranges'] = 'bytes';
+      }
 
       if (download) {
          headers['Content-Disposition'] = `attachment; filename=${basename(path)}`;
       }
 
-      return new NextResponse(buf, { status: 200, headers });
+      return new NextResponse(stream, { status: range ? 206 : 200, headers });
    } catch (e) {
       return NextResponse.json({ message: 'Cannot find thumbnail' }, { status: 404 });
    }
