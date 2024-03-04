@@ -247,7 +247,7 @@ const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScrubStart,
       <div ref={scrollbarElemRef} className="fixed w-1 bg-gray-500 top-28 bottom-10 right-2 transition-opacity duration-1000 opacity-0 rounded">
          {nodes.map((node) => (
             <div
-               key={blocks[node.block].day}
+               key={blocks[node.block]?.day}
                className="absolute w-1 h-1 bg-gray-700 rounded-full"
                style={{ top: `${scrollbarElemRef.current ? node.position * scrollbarElemRef.current.clientHeight - 2 : 0}px` }}
             ></div>
