@@ -18,29 +18,17 @@ interface MediaBlock {
    total: number;
 }
 
-/* Metadata for a thumbnail image */
-interface ThumbImageMeta {
+/* Metadata for a thumbnail */
+interface ThumbMeta {
    /* The id of the media */
    id: number;
 
    /* The media type */
-   type: 'image';
+   type: 'image' | 'video';
+
+   /* The video duration in milliseconds */
+   duration?: number;
 }
-
-/* Metadata for a thumbnail video */
-interface ThumbVideoMeta {
-   /* The id of the media */
-   id: number;
-
-   /* The media type */
-   type: 'video';
-
-   /* THe duration in milliseconds */
-   duration: number;
-}
-
-/* Metadata for a media thumbnail */
-type ThumbMeta = ThumbImageMeta | ThumbVideoMeta;
 
 /* Search filters for the gallery */
 interface SearchFilter {
@@ -99,10 +87,10 @@ interface Media {
    path: string;
 
    /* The media type */
-   type: string;
+   type: 'image' | 'video';
 
    /* The unix timestamp of the media */
-   timestamp: Date;
+   timestamp: number;
 
    /* File size in bytes */
    size: number;

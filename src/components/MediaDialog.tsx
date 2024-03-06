@@ -8,10 +8,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useSwipeable, LEFT, RIGHT, DOWN, SwipeDirections } from 'react-swipeable';
-import { ArrowDownTrayIcon, ArrowLeftIcon, ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useAPI, useSearchAPI } from '@/hooks';
-import { MediaItem } from '.';
+import { useSwipeable, LEFT, RIGHT, DOWN, SwipeDirections, UP } from 'react-swipeable';
+import { ArrowDownTrayIcon, ArrowUturnLeftIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useSearchAPI } from '@/hooks';
+import { MediaCarousel, MediaInformation } from '.';
 
 interface ImageDialogProps {
    id: number;
@@ -22,7 +22,7 @@ const isTouchEnabled = () => {
    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 };
 
-interface MediaState {
+export interface MediaState {
    id: number;
    prev?: Media;
    current?: Media;
@@ -33,9 +33,14 @@ interface MediaState {
 const MediaDialog = (props: ImageDialogProps) => {
    const [state, setState] = useState<MediaState>({ id: props.id });
    const [showControls, setShowControls] = useState(false);
+   const [showInfo, setShowInfo] = useState(false);
    const api = useSearchAPI<APIMedia>({ url: '/api/media', params: { id: state.id } });
 
-   const swipe = useCallback(
+   const onClose = useCallback(() => {
+      props.onClose();
+   }, [props]);
+
+   const onSwipe = useCallback(
       (dir: SwipeDirections) => {
          setState({ ...state, swipeDir: dir });
       },
@@ -59,11 +64,11 @@ const MediaDialog = (props: ImageDialogProps) => {
    useEffect(() => {
       const handleKeyPress = (event: KeyboardEvent) => {
          if (event.key === 'Escape') {
-            props.onClose();
+            onClose();
          } else if (event.key === 'ArrowLeft') {
-            swipe(RIGHT);
+            onSwipe(RIGHT);
          } else if (event.key === 'ArrowRight') {
-            swipe(LEFT);
+            onSwipe(LEFT);
          }
       };
 
@@ -72,7 +77,7 @@ const MediaDialog = (props: ImageDialogProps) => {
       return () => {
          document.removeEventListener('keydown', handleKeyPress);
       };
-   }, [props, swipe]);
+   }, [onClose, onSwipe]);
 
    const gotoMedia = useCallback(
       (media?: Media) => {
@@ -85,16 +90,39 @@ const MediaDialog = (props: ImageDialogProps) => {
       [state]
    );
 
+   const onSwipeComplete = useCallback((dir?: SwipeDirections) => {
+      switch (dir) {
+         case RIGHT:
+            gotoMedia(state.prev);
+            break;
+
+         case LEFT:
+            gotoMedia(state.next);
+            break;
+
+         case UP:
+            setShowInfo(true);
+            setState({ ...state, swipeDir: undefined });
+            break;
+      }
+   }, [state, gotoMedia]);
+
    const handlers = useSwipeable({
       onSwiped: (e) => {
-         switch (e.dir) {
-            case DOWN:
-               props.onClose();
-               break;
+         if (!showInfo) {
+            switch (e.dir) {
+               case DOWN:
+                  onClose();
+                  break;
 
-            default:
-               swipe(e.dir);
-               break;
+               case UP:
+                  onSwipe(e.dir);
+                  break;
+
+               default:
+                  onSwipe(e.dir);
+                  break;
+            }
          }
       },
    });
@@ -107,60 +135,36 @@ const MediaDialog = (props: ImageDialogProps) => {
          onMouseLeave={() => !isTouchEnabled() && setShowControls(false)}
          {...handlers}
       >
-         <div className="relative modal-box bg-black flex flex-col w-full h-full max-h-full max-w-full overflow-hidden">
-            {state.prev && (
-               <MediaItem
-                  className={state.swipeDir === RIGHT ? 'transition-transform' : '-translate-x-full transition-transform invisible'}
-                  media={state.prev}
+         <div className="relative modal-box bg-base-100 flex flex-col w-full h-full max-h-full max-w-full overflow-hidden">
+            {showInfo && state.current ? (
+               <MediaInformation media={state.current} />
+            ) : (
+               <MediaCarousel
+                  state={state}
+                  showControls={showControls}
+                  onClick={() => setShowControls(!showControls)}
+                  onSwipe={onSwipe}
+                  onTransitionEnd={() => onSwipeComplete(state.swipeDir)}
                />
             )}
 
-            {state.next && (
-               <MediaItem
-                  className={state.swipeDir === LEFT ? 'transition-transform' : 'translate-x-full transition-transform invisible'}
-                  media={state.next}
-               />
-            )}
-
-            {state.id && (
-               <MediaItem
-                  className={
-                     state.swipeDir === RIGHT && state.prev
-                        ? 'translate-x-full transition-transform'
-                        : state.swipeDir === LEFT && state.next
-                        ? '-translate-x-full transition-transform'
-                        : ''
-                  }
-                  media={state.current}
-                  isCurrent
-                  onTransitionEnd={() => gotoMedia(state.swipeDir === RIGHT ? state.prev : state.swipeDir === LEFT ? state.next : undefined)}
-               />
-            )}
-
-            {showControls && (
-               <>
+            {(showControls || showInfo) && (
+               <div className="fixed top-3 right-3 flex space-x-3">
                   {state.current && (
-                     <a className="btn btn-circle opacity-80 fixed top-3 right-20 " href={`/api/${state.current.type}?id=${state.id}&download=1`}>
-                        <ArrowDownTrayIcon className="h-6 w-6" />
-                     </a>
+                     <>
+                        <button className="btn btn-circle opacity-80" onClick={() => setShowInfo(!showInfo)}>
+                           {showInfo ? <ArrowUturnLeftIcon className="h-6 w-6" /> : <InformationCircleIcon className="h-6 w-6" />}
+                        </button>
+                        <a className="btn btn-circle opacity-80" href={`/api/${state.current.type}?id=${state.id}&download=1`}>
+                           <ArrowDownTrayIcon className="h-6 w-6" />
+                        </a>
+                     </>
                   )}
 
-                  <button className="btn btn-circle opacity-80 fixed top-3 right-3 " onClick={props.onClose}>
+                  <button className="btn btn-circle opacity-80" onClick={onClose}>
                      <XMarkIcon className="h-6 w-6" />
                   </button>
-
-                  {state.prev && (
-                     <button className="btn btn-circle opacity-80 fixed top-1/2 left-10 " onClick={() => swipe(RIGHT)}>
-                        <ArrowLeftIcon className="h-6 w-6" />
-                     </button>
-                  )}
-
-                  {state.next && (
-                     <button className="btn btn-circle opacity-80 fixed top-1/2 right-10 " onClick={() => swipe(LEFT)}>
-                        <ArrowRightIcon className="h-6 w-6" />
-                     </button>
-                  )}
-               </>
+               </div>
             )}
          </div>
       </dialog>

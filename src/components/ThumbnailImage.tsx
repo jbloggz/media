@@ -13,6 +13,7 @@ import { ImageSkeleton } from '.';
 
 interface ThumbnailImageProps {
    meta?: ThumbMeta;
+   noOverlay?: boolean;
    onClick?: (id: number) => void;
 }
 
@@ -45,8 +46,8 @@ const ThumbnailImage = (props: ThumbnailImageProps) => {
             <ImageSkeleton />
             {props.meta && (
                <>
-                  <Image unoptimized={true} src={`/api/thumb?id=${props.meta.id}`} fill={true} alt="" sizes="100px" className="cursor-pointer" />
-                  {props.meta.type === 'video' && (
+                  <Image unoptimized={true} src={`/api/thumb?id=${props.meta.id}`} fill={true} alt="" sizes="100px" className={props.onClick ? 'cursor-pointer' : ''} />
+                  {props.meta.type === 'video' && !props.noOverlay && (
                      <>
                         <Image
                            unoptimized={true}
@@ -56,7 +57,7 @@ const ThumbnailImage = (props: ThumbnailImageProps) => {
                            alt=""
                            className="cursor-pointer absolute top-0 bottom-0 left-0 right-0 m-auto opacity-50 group-hover:opacity-70"
                         />
-                        <p className="absolute bottom-1 right-1 opacity-50 group-hover:opacity-70">{prettyDuration(props.meta.duration)}</p>
+                        <p className="absolute bottom-1 right-1 opacity-50 group-hover:opacity-70">{prettyDuration(props.meta.duration || 0)}</p>
                      </>
                   )}
                </>

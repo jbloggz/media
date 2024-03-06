@@ -15,6 +15,7 @@ import { Loader } from '.';
 interface MediaItemProps {
    media?: Media;
    className?: string;
+   onClick?: () => void;
    onTransitionEnd?: TransitionEventHandler<HTMLElement>;
    isCurrent?: boolean;
 }
@@ -32,6 +33,7 @@ const MediaItem = (props: MediaItemProps) => {
             alt={basename(props.media.path)}
             loader={(v) => `${v.src}&w=${v.width}`}
             onTransitionEnd={props.onTransitionEnd}
+            onClick={props.onClick}
             fill
             sizes={'100vw'}
          />
@@ -43,6 +45,7 @@ const MediaItem = (props: MediaItemProps) => {
          autoPlay={props.isCurrent}
          preload={props.isCurrent ? 'auto' : 'none'}
          controls
+         onClick={props.onClick}
          onTransitionEnd={props.onTransitionEnd}
       >
          <source src={`/api/video?id=${props.media.id}`} />

@@ -10,7 +10,9 @@ import AppDrawer from './AppDrawer';
 import Gallery from './Gallery';
 import ImageSkeleton from './ImageSkeleton';
 import Loader from './Loader';
+import MediaCarousel from './MediaCarousel';
 import MediaDialog from './MediaDialog';
+import MediaInformation from './MediaInformation';
 import MediaItem from './MediaItem';
 import NavBar from './NavBar';
 import NavUserMenu from './NavUserMenu';
@@ -26,7 +28,9 @@ export {
    Gallery,
    ImageSkeleton,
    Loader,
+   MediaCarousel,
    MediaDialog,
+   MediaInformation,
    MediaItem,
    NavBar,
    NavUserMenu,
