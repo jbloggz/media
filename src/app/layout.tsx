@@ -13,6 +13,7 @@ import { AppDrawer, NavBar } from '@/components';
 import { ToastContainer } from 'react-toastify';
 import Login from './login/page';
 import './globals.css';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -35,6 +36,7 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
                <Login />
             )}
             <ToastContainer stacked autoClose={false} draggable theme="dark" />
+            <Script id="sw">{`if (navigator.serviceWorker) {navigator.serviceWorker.register('/service-worker.js');}`}</Script>
          </body>
       </html>
    );
