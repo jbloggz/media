@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",
+    "bcryptjs": "^2.4.3",
     "mime": "^4.0.1",
     "moment-timezone": "^0.5.45",
     "next": "14.0.2",
@@ -26,6 +27,7 @@
     "swr": "^2.2.4"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/pg": "^8.11.0",
     "@types/range-parser": "^1.2.7",
