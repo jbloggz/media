@@ -1,2 +1,107 @@
-# media
-An app to browse and organise media files
+# Media
+
+This is an app to manage and view media files stored on a server
+
+## Getting Started
+
+### Installation
+
+These instructions have been tested with Ubuntu 22.04
+
+1. Make sure you have the following installed:
+   ```sh
+   git
+   python3.10 or later
+   node v18 or later (recommend to use nvm)
+   PostgreSQL v14 or later
+   ```
+   On ubuntu, run:
+   ```sh
+   $ sudo apt install git python3.10 postgresql python3.10-venv ffmpeg
+   ```
+   See https://github.com/nvm-sh/nvm on how to install node via nvm.
+
+2. Clone this repository
+   ```sh
+   $ git clone https://github.com/jbloggz/media.git
+   ```
+
+3. Setup a python virtual environment inside the repo directory, and install
+   dependencies:
+   ```sh
+   # Run this from the top level of the repository. You may need to install the
+   # venv package if it's not installed:
+   $ python3 -m venv .pyvenv
+   $ . .pyvenv/bin/activate
+   $ pip3 install -r requirements.txt
+   ```
+
+4. Copy the .env.local.example to .env.local and update it to have the correct
+   values.
+
+   If you want to use google login, then uou will need to have a google account,
+   and create a project for this app here: <https://console.cloud.google.com>. You
+   then need to create OAuth credentials to use with this app here:
+   <https://console.cloud.google.com/apis/credentials>
+
+   If you want to use credentials login, you will need to create a base64 encoded
+   bcrypt hash for every user. A simple way to do this is with the following
+   command:
+   ```sh
+   $ python3 -c "from passlib.hash import bcrypt;import base64;print(base64.b64encode(bcrypt.hash('PASSWORD').encode()).decode())"
+   ```
+
+5. Setup PostgreSQL database
+
+   5.1. Start the postgres server if it's not already running
+   ```sh
+   $ sudo systemctl start postgresql
+   ```
+
+   5.2. Connect to the database as the postgres user and create the media user and database
+   ```
+   $ sudo su - postgres -c psql
+   postgres=# CREATE USER media PASSWORD 'XXXX';
+   postgres=# CREATE DATABASE media WITH OWNER media;
+   postgres=# quit
+   ```
+
+   5.3. Update the pg_hba.conf to match your preferred setup. You can find this
+   file by connecting to postgres and running `SHOW hba_file;`. See
+   <https://www.postgresql.org/docs/current/auth-pg-hba-conf.html> for how to
+   modify this file to match your setup. The simplest method is to use the
+   'trust' auth-method for local connections, like this:
+   ```sh
+   # TYPE  DATABASE        USER            ADDRESS                 METHOD
+   local   media           media                                   trust
+   ```
+   Make sure you reload postgres when changing this file:
+   ```sh
+   $ sudo systemctl reload postgresql
+   ```
+
+   5.4. Create the database schema by running:
+   ```sh
+   psql -U media < schema.sql
+   ```
+
+6. Run the app!
+   ```sh
+   $ npm install
+   $ npm run build
+   $ npm start
+   ```
+
+7. Process some media files.
+   Currently the app does not support automatically processing media files, and
+   this needs to be run manually. In future version, the plan is to allow
+   automatic syncing and processing from various sources (eg. phones, PCs).
+   To manually process media files, run the following command (make sure you
+   have activated the python virtual environment you created earlier):
+   ```sh
+   $ python3 src/scripts/media_processor.py -e .env.local -U -p /path/to/media
+   ```
+   This will recurse into the directory provided by `-p` and process any media
+   files that it is able to. You can safely call this multiple times on the
+   same directory and it will only process new files that it hasn't seen
+   previously.
