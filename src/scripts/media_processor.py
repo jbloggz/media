@@ -19,6 +19,7 @@ PGDATABASE - The database to connect to
 TIMEZONE - Name of the timezone to use
 '''
 
+# System Imports
 import os
 import io
 import sys
@@ -34,6 +35,8 @@ import datetime
 import binascii
 from pathlib import Path
 from typing import Optional, Dict, List
+
+# 3rd Party Imports
 import psycopg
 import ffmpeg
 import av
@@ -131,7 +134,7 @@ class Progress:
     A class to represent the progress of this process
     '''
 
-    def __init__(self, db: psycopg.Cursor, interval: int):
+    def __init__(self, db: psycopg.Cursor, interval: int, log_progress: bool):
         '''
         Constructor
 
@@ -141,6 +144,7 @@ class Progress:
         '''
         self.db = db
         self.interval = interval
+        self.log = log_progress
         self.last_time = 0
         self.last_state = ''
         self.update('initlialising')
@@ -165,6 +169,8 @@ class Progress:
             'name': 'index',
             'msg': json.dumps(message)
         })
+        if self.log:
+            logging.info(json.dumps(message))
 
 
 def deep_update(mapping: Dict, *updating_mappings: Dict):
@@ -470,7 +476,7 @@ def index_directory(args: argparse.Namespace, db: psycopg.Cursor, path: Path) ->
     '''
     logging.info(f'Indexing {path}')
     res = Result()
-    progress = Progress(db, args.progress_update)
+    progress = Progress(db, args.progress_update, args.log_progress)
     existing_files = get_existing_media(db)
     files = [f for f in path.rglob('*') if f.is_file()]
     to_process = [f for f in files if f not in existing_files]
@@ -572,6 +578,7 @@ def parse_args():  # pragma: no cover
     parser.add_argument('-n', '--ncpu', type=int, default=2, help='Number of threads to run')
     parser.add_argument('-p', '--path', type=str, help='Process a path and exit')
     parser.add_argument('-u', '--progress-update', type=int, default=3, help='Progress update interval')
+    parser.add_argument('-U', '--log-progress', action='store_true', help='Log progress')
 
     args = parser.parse_args()
 
