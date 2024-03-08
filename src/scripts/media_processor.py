@@ -43,7 +43,10 @@ import av
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from PIL.ExifTags import TAGS, GPSTAGS
-from PIL import Image, TiffImagePlugin, ImageOps
+from PIL import Image, TiffImagePlugin, ImageOps, ImageFile
+
+
+logger = logging.getLogger('media_processor')
 
 
 class FileMetadata(BaseModel):
@@ -157,20 +160,21 @@ class Progress:
             state: The current state
             data: Context about the progress. Defaults to None.
         '''
-        if time.time() - self.last_time < self.interval and state == self.last_state:
+        now = time.time()
+        if now - self.last_time < self.interval and state == self.last_state:
             # It's been less than interval seconds, and the state hasn't changed, so do nothing
             return
-        self.last_time = time.time()
+        self.last_time = now
         self.last_state = state
         message = data or {}
-        message['time'] = time.time()
         message['state'] = state
+        message['ete'] = None if not message.get('processed') else message.get('duration', 0) / message.get('processed', 1) * message.get('total', 0)
         self.db.execute('INSERT INTO progress VALUES (%(name)s, %(msg)s) ON CONFLICT (name) DO UPDATE SET message = %(msg)s', {
             'name': 'index',
             'msg': json.dumps(message)
         })
         if self.log:
-            logging.info(json.dumps(message))
+            logger.info(json.dumps(message))
 
 
 def deep_update(mapping: Dict, *updating_mappings: Dict):
@@ -218,21 +222,40 @@ def generate_thumbnail(file: FileMetadata, img: Image):
     thumb_size = int(os.environ['THUMBNAIL_SIZE'])
     cropped.thumbnail((thumb_size, thumb_size))
     thumb = io.BytesIO()
+    if cropped.mode in ("RGBA", "P"):
+        cropped = cropped.convert("RGB")
     cropped.save(thumb, format='JPEG')
     file.thumbnail = thumb.getvalue()
 
 
-def decode_exif_timestamp(exif_time: str) -> int:
+def decode_exif_timestamp(file: FileMetadata, key: str, exif_time: str) -> int:
     '''
-    Convert a string exif formatted timestamp to unix epock seconds
+    Convert a string exif formatted timestamp to unix epoch seconds
 
     Args:
+        file:      The file that is being processed
+        key:       The exif key that is being parsed
         exif_time: The exit timestamp
 
     Returns:
         A unix epoch timestamp
     '''
-    return int(datetime.datetime.strptime(exif_time, "%Y:%m:%d %H:%M:%S").timestamp())
+    ts = None
+    for fmt in ['%Y:%m:%d %H:%M:%S', '%Y/%m/%d %H:%M:%S']:
+        try:
+            if ts is not None:
+                break
+            ts = int(datetime.datetime.strptime(exif_time, fmt).timestamp())
+        except:
+            pass
+
+    if ts is None:
+        logger.warning(f'Unable to decode {key} for {file.path}: {exif_time}')
+    elif ts > time.time():
+        logger.warning(f'Invalid time found in {key} for {file.path}: {exif_time}')
+        ts = None
+
+    return ts
 
 
 def insert_media(db: psycopg.Cursor, media: List[FileMetadata]):
@@ -248,7 +271,32 @@ def insert_media(db: psycopg.Cursor, media: List[FileMetadata]):
     header = FileMetadata.__annotations__.keys()
     with db.copy(f'COPY media ({",".join(header)}) FROM STDIN') as copy:
         for file in media:
+            logger.debug(f'Inserting: {file.dict()}')
             copy.write_row(list(file.dict().values()))
+
+
+def load_video_duration(probe: List, video_info: Dict) -> int:
+    '''
+    Get the video duration form the ffprobe metadata
+
+    Args:
+        probe: The ffprobe output
+        video_info: The stream info for the video
+
+    Returns:
+        The duration in milliseconds
+    '''
+    try:
+        return int(float(probe['format']['duration']) * 1000)
+    except:
+        pass
+
+    try:
+        return int(float(video_info['duration']) * 1000)
+    except:
+        pass
+
+    raise ValueError('Unable to find video duration')
 
 
 def load_video_metadata(file: FileMetadata):
@@ -258,11 +306,17 @@ def load_video_metadata(file: FileMetadata):
     Args:
         file: The file to load the metadata
     '''
-    probe = ffmpeg.probe(file.path)
-    video_info = next(s for s in probe['streams'] if s['codec_type'] == 'video')
+    try:
+        probe = ffmpeg.probe(file.path)
+    except:
+        raise ValueError('ffprobe failed. Possibly corrupt file')
+    try:
+        video_info = next(s for s in probe['streams'] if s['codec_type'] == 'video')
+    except:
+        raise ValueError('No valid video stream found')
     file.width = int(video_info['width'])
     file.height = int(video_info['height'])
-    file.duration = int(float(video_info['duration']) * 1000)
+    file.duration = load_video_duration(probe, video_info)
 
     frames = av.open(file.path).decode(video=0)
     try:
@@ -313,21 +367,25 @@ def decode_exif(data, key=None):
     return data
 
 
-def load_image_metadata(file: FileMetadata):
+def sanitise_string(file: FileMetadata, key: str, raw: str) -> str:
+    if [c for c in raw if not 32 <= ord(c) <= 126]:
+        logger.warning(f'Non-printable characters found in {key} of {file.path}: {raw.encode()}')
+        return ''.join(c for c in raw if 32 <= ord(c) <= 126)
+    return raw
+
+
+def sanitise_exif(file: FileMetadata, exif: Dict) -> Dict:
     '''
-    Load the metadata for a image file using ffmpeg
+    Sanitise the exif data
 
     Args:
-        file: The file to load the metadata
-    '''
-    img = Image.open(file.path)
-    file.width = img.size[0]
-    file.height = img.size[1]
-    raw_exif = img.getexif()
-    if raw_exif is None:
-        return
+        file: The file being processed
+        exif: The decoded exif data
 
-    exif = {
+    Returns:
+        The sanitised exif data
+    '''
+    sanitised = {
         'Make': None,
         'Model': None,
         'DateTime': None,
@@ -343,14 +401,70 @@ def load_image_metadata(file: FileMetadata):
         },
     }
 
-    deep_update(exif, decode_exif(raw_exif))
+    if not isinstance(exif, dict):
+        return sanitised
 
-    if exif['ExifOffset']['DateTimeOriginal'] is not None:
-        file.timestamp = decode_exif_timestamp(exif['ExifOffset']['DateTimeOriginal'])
-    elif exif['ExifOffset']['DateTimeDigitized'] is not None:
-        file.timestamp = decode_exif_timestamp(exif['ExifOffset']['DateTimeDigitized'])
-    elif exif['DateTime'] is not None:
-        file.timestamp = decode_exif_timestamp(exif['DateTime'])
+    if 'Make' in exif and isinstance(exif['Make'], str):
+        sanitised['Make'] = sanitise_string(file, 'Make', exif['Make'])
+
+    if 'Model' in exif and isinstance(exif['Model'], str):
+        sanitised['Model'] = sanitise_string(file, 'Model', exif['Model'])
+
+    if 'DateTime' in exif and isinstance(exif['DateTime'], str):
+        sanitised['DateTime'] = exif['DateTime']
+
+    eo = exif.get('ExifOffset')
+    if isinstance(eo, dict):
+        if 'DateTimeOriginal' in eo and isinstance(eo['DateTimeOriginal'], str):
+            sanitised['ExifOffset']['DateTimeOriginal'] = eo['DateTimeOriginal']
+
+        if 'DateTimeDigitized' in eo and isinstance(eo['DateTimeDigitized'], str):
+            sanitised['ExifOffset']['DateTimeDigitized'] = eo['DateTimeDigitized']
+
+    gps = exif.get('GPSInfo')
+    if isinstance(gps, dict):
+        if 'GPSLatitudeRef' in gps and isinstance(gps['GPSLatitudeRef'], str):
+            sanitised['GPSInfo']['GPSLatitudeRef'] = gps['GPSLatitudeRef']
+
+        if 'GPSLatitude' in gps and isinstance(gps['GPSLatitude'], list) and len(gps['GPSLatitude']) > 2:
+            sanitised['GPSInfo']['GPSLatitude'] = gps['GPSLatitude']
+
+        if 'GPSLongitudeRef' in gps and isinstance(gps['GPSLongitudeRef'], str):
+            sanitised['GPSInfo']['GPSLongitudeRef'] = gps['GPSLongitudeRef']
+
+        if 'GPSLongitude' in gps and isinstance(gps['GPSLongitude'], list) and len(gps['GPSLongitude']) > 2:
+            sanitised['GPSInfo']['GPSLongitude'] = gps['GPSLongitude']
+
+    return sanitised
+
+
+def load_image_metadata(file: FileMetadata, use_file_time: bool):
+    '''
+    Load the metadata for a image file using ffmpeg
+
+    Args:
+        file:          The file to load the metadata
+        use_file_time: Don't get the time from the exif data
+    '''
+    img = Image.open(file.path)
+    file.width = img.size[0]
+    file.height = img.size[1]
+    raw_exif = img.getexif()
+    if raw_exif is None:
+        return
+
+    exif = sanitise_exif(file, decode_exif(raw_exif))
+
+    if not use_file_time:
+        timestamp = None
+        if timestamp is None and exif['ExifOffset']['DateTimeOriginal'] is not None:
+            timestamp = decode_exif_timestamp(file, 'DateTimeOriginal', exif['ExifOffset']['DateTimeOriginal'])
+        if timestamp is None and exif['ExifOffset']['DateTimeDigitized'] is not None:
+            timestamp = decode_exif_timestamp(file, 'DateTimeDigitized', exif['ExifOffset']['DateTimeDigitized'])
+        if timestamp is None and exif['DateTime'] is not None:
+            timestamp = decode_exif_timestamp(file, 'DateTime', exif['DateTime'])
+        if timestamp is not None:
+            file.timestamp = timestamp
 
     if exif['Make']:
         file.make = exif['Make']
@@ -398,40 +512,41 @@ def validate_file(file: FileMetadata):
         file: The file to validate
     '''
     if not Path(file.path).exists():
-        raise ValueError(f'Validation failed: file does not exist: {file.path}')
+        raise ValueError('Validation failed: file does not exist')
     if file.type not in ['video', 'image']:
-        raise ValueError(f'Validation failed: Invalid type of {file.type}: {file.path}')
+        raise ValueError(f'Validation failed: Invalid type of {file.type}')
     if not isinstance(file.timestamp, int) or file.timestamp == 0:
-        raise ValueError(f'Validation failed: invalid timestamp of {file.timestamp}: {file.path}')
+        raise ValueError(f'Validation failed: invalid timestamp of {file.timestamp}')
     if not isinstance(file.size, int) or file.size == 0:
-        raise ValueError(f'Validation failed: invalid size of {file.size}: {file.path}')
+        raise ValueError(f'Validation failed: invalid size of {file.size}')
     if not isinstance(file.width, int) or file.width == 0:
-        raise ValueError(f'Validation failed: invalid width of {file.width}: {file.path}')
+        raise ValueError(f'Validation failed: invalid width of {file.width}')
     if not isinstance(file.height, int) or file.height == 0:
-        raise ValueError(f'Validation failed: invalid length of {file.hight}: {file.path}')
+        raise ValueError(f'Validation failed: invalid length of {file.hight}')
     if file.type == 'video' and (not isinstance(file.duration, int) or file.duration == 0):
-        raise ValueError(f'Validation failed: Invalid video duration of {file.duration}: {file.path}')
+        raise ValueError(f'Validation failed: Invalid video duration of {file.duration}')
     if file.type == 'image' and file.duration is not None:
-        raise ValueError(f'Validation failed: Duration must not be set for images: {file.duration}: {file.path}')
+        raise ValueError(f'Validation failed: Duration must not be set for images: {file.duration}')
     if not (file.latitude is None or ((isinstance(file.latitude, int) or isinstance(file.latitude, float)))):
-        raise ValueError(f'Validation failed: Invalid latitude of {file.latitude}: {file.path}')
+        raise ValueError(f'Validation failed: Invalid latitude of {file.latitude}')
     if not (file.longitude is None or ((isinstance(file.longitude, int) or isinstance(file.longitude, float)))):
-        raise ValueError(f'Validation failed: Invalid longitude of {file.longitude}: {file.path}')
+        raise ValueError(f'Validation failed: Invalid longitude of {file.longitude}')
     if file.make is not None and (not isinstance(file.make, str) or file.make == ''):
-        raise ValueError(f'Validation failed: Invalid make of {file.make}: {file.path}')
+        raise ValueError(f'Validation failed: Invalid make of {file.make}')
     if file.model is not None and (not isinstance(file.model, str) or file.model == ''):
-        raise ValueError(f'Validation failed: Invalid model of {file.model}: {file.path}')
+        raise ValueError(f'Validation failed: Invalid model of {file.model}')
     if not isinstance(file.sha256, str) or len(file.sha256) != 64:
-        raise ValueError(f'Validation failed: Invalid sha256 of {file.sha256}: {file.path}')
+        raise ValueError(f'Validation failed: Invalid sha256 of {file.sha256}')
     if not isinstance(file.thumbnail, bytes) or len(file.thumbnail) == 0:
-        raise ValueError(f'Validation failed: Invalid thumbnail of {file.thumbnail}: {file.path}')
+        raise ValueError(f'Validation failed: Invalid thumbnail of {file.thumbnail}')
 
 
-def process_file(file_path: Path) -> Optional[FileMetadata]:
+def process_file(args: argparse.Namespace, file_path: Path) -> Optional[FileMetadata]:
     '''
     Process a file and load its metadata
 
     Args:
+        args:      Command line arguments
         file_path: Path of the file to process
 
     Returns:
@@ -439,7 +554,7 @@ def process_file(file_path: Path) -> Optional[FileMetadata]:
     '''
     mime_type = mimetypes.guess_type(file_path)[0]
     if mime_type is None:
-        logging.warning(f'Skipping unsupported file: {file_path}')
+        logger.warning(f'Skipping unsupported file: {file_path}')
         return None
 
     stats = os.stat(file_path)
@@ -447,12 +562,12 @@ def process_file(file_path: Path) -> Optional[FileMetadata]:
 
     if mime_type.startswith('image'):
         file.type = 'image'
-        load_image_metadata(file)
-    elif mime_type.startswith('video'):
+        load_image_metadata(file, args.file_time)
+    elif mime_type.startswith('video') or mime_type in ['audio/3gpp']:
         file.type = 'video'
         load_video_metadata(file)
     else:
-        logging.warning(f'Skipping unsupported file of mime type {mime_type}: {file_path}')
+        logger.warning(f'Skipping unsupported file of mime type {mime_type}: {file_path}')
         return None
 
     calculate_sha256(file)
@@ -474,19 +589,23 @@ def index_directory(args: argparse.Namespace, db: psycopg.Cursor, path: Path) ->
     Returns:
         The counts of processed, skipped and failed files in the directory
     '''
-    logging.info(f'Indexing {path}')
+    start_time = int(time.time())
+    logger.info(f'Indexing {path}')
     res = Result()
     progress = Progress(db, args.progress_update, args.log_progress)
     existing_files = get_existing_media(db)
-    files = [f for f in path.rglob('*') if f.is_file()]
+    files = [path] if path.is_file() else [f for f in path.rglob('*') if f.is_file()]
     to_process = [f for f in files if f not in existing_files]
     res.skipped += len(files) - len(to_process)
     if res.skipped > 0:
-        logging.info(f'Skipping {res.skipped} file{"s" if res.skipped > 1 else ""} already indexed')
+        logger.info(f'Skipping {res.skipped} file{"s" if res.skipped > 1 else ""} already indexed')
+
+    # Set this to allow loading truncated images
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
 
     processed: List[FileMetadata] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.ncpu) as executor:
-        futures = {executor.submit(process_file, path): path for path in to_process}
+        futures = {executor.submit(process_file, args, path): path for path in to_process}
         for future in concurrent.futures.as_completed(futures):
             try:
                 path = futures[future]
@@ -496,26 +615,32 @@ def index_directory(args: argparse.Namespace, db: psycopg.Cursor, path: Path) ->
                     processed.append(file)
                 else:
                     res.skipped += 1
-            except:
-                logging.exception(f'Unable to process {path}')
+            except Exception as e:
+                logger.error(f'Unable to process {path}: {e}')
                 res.failed += 1
 
+            now = int(time.time())
             progress.update('processing', {
                 'processed': res.processed,
                 'skipped': res.skipped,
                 'failed': res.failed,
-                'total': len(to_process)
+                'total': len(to_process),
+                'time': now,
+                'duration': now - start_time
             })
 
     with db.connection.transaction():
         insert_media(db, processed)
 
-    logging.info(f'Processed: {res.processed}, skipped: {res.skipped}, failed: {res.failed}')
+    logger.info(f'Processed: {res.processed}, skipped: {res.skipped}, failed: {res.failed}')
+    now = int(time.time())
     progress.update('complete', {
         'processed': res.processed,
         'skipped': res.skipped,
         'failed': res.failed,
-        'total': len(to_process)
+        'total': len(to_process),
+        'time': now,
+        'duration': now - start_time
     })
     return res
 
@@ -527,7 +652,6 @@ def set_log_level(level):
     Args:
         level: The new log level
     '''
-    logger = logging.getLogger()
     level = max(logging.DEBUG, min(level, logging.CRITICAL))
     logger.setLevel(logging.INFO)
     logger.info(f'Setting log level to %s', logging.getLevelName(level))
@@ -541,7 +665,6 @@ def init_logging(args: argparse.Namespace):
     Args:
         args: Command line arguments
     '''
-    logger = logging.getLogger()
     set_log_level(logging.DEBUG if args.debug else logging.INFO)
     signal.signal(signal.SIGUSR1, lambda *_: set_log_level(logger.level - 10))
     signal.signal(signal.SIGUSR2, lambda *_: set_log_level(logger.level + 10))
@@ -579,6 +702,7 @@ def parse_args():  # pragma: no cover
     parser.add_argument('-p', '--path', type=str, help='Process a path and exit')
     parser.add_argument('-u', '--progress-update', type=int, default=3, help='Progress update interval')
     parser.add_argument('-U', '--log-progress', action='store_true', help='Log progress')
+    parser.add_argument('-t', '--file-time', action='store_true', help='Force the use of the file timestamp')
 
     args = parser.parse_args()
 
@@ -614,14 +738,14 @@ def main(args: argparse.Namespace):  # pragma: no cover
             with psycopg.connect(autocommit=True) as conn:
                 with conn.cursor() as cur:
                     cur.execute('LISTEN media_processor')
-                    logging.info('Connected to db. Listening...')
+                    logger.info('Connected to db. Listening...')
                     for notify in conn.notifies():
                         with Lock(cur):
                             index_directory(args, cur, Path(notify.payload))
         except KeyboardInterrupt:
             break
         except:
-            logging.exception('Uncaught exception. Will reconnect in 10s')
+            logger.exception('Uncaught exception. Will reconnect in 10s')
             time.sleep(10)
 
 
@@ -629,4 +753,4 @@ if __name__ == '__main__':  # pragma: no cover
     try:
         sys.exit(main(parse_args()))
     except Exception as exc:  # pylint: disable=broad-except
-        logging.exception(exc, exc_info=True)
+        logger.exception(exc, exc_info=True)
