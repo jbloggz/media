@@ -17,13 +17,13 @@ These instructions have been tested with Ubuntu 22.04
    ```
    On ubuntu, run:
    ```sh
-   $ sudo apt install git python3.10 postgresql python3.10-venv ffmpeg
+   sudo apt install git python3.10 postgresql python3.10-venv ffmpeg
    ```
    See https://github.com/nvm-sh/nvm on how to install node via nvm.
 
 2. Clone this repository
    ```sh
-   $ git clone https://github.com/jbloggz/media.git
+   git clone https://github.com/jbloggz/media.git
    ```
 
 3. Setup a python virtual environment inside the repo directory, and install
@@ -31,9 +31,9 @@ These instructions have been tested with Ubuntu 22.04
    ```sh
    # Run this from the top level of the repository. You may need to install the
    # venv package if it's not installed:
-   $ python3 -m venv .pyvenv
-   $ . .pyvenv/bin/activate
-   $ pip3 install -r requirements.txt
+   python3 -m venv .pyvenv
+   . .pyvenv/bin/activate
+   pip3 install -r requirements.txt
    ```
 
 4. Copy the .env.local.example to .env.local and update it to have the correct
@@ -48,19 +48,19 @@ These instructions have been tested with Ubuntu 22.04
    bcrypt hash for every user. A simple way to do this is with the following
    command:
    ```sh
-   $ python3 -c "from passlib.hash import bcrypt;import base64;print(base64.b64encode(bcrypt.hash('PASSWORD').encode()).decode())"
+   python3 -c "from passlib.hash import bcrypt;import base64;print(base64.b64encode(bcrypt.hash('PASSWORD').encode()).decode())"
    ```
 
 5. Setup PostgreSQL database
 
    5.1. Start the postgres server if it's not already running
    ```sh
-   $ sudo systemctl start postgresql
+   sudo systemctl start postgresql
    ```
 
    5.2. Connect to the database as the postgres user and create the media user and database
    ```
-   $ sudo su - postgres -c psql
+   sudo su - postgres -c psql
    postgres=# CREATE USER media PASSWORD 'XXXX';
    postgres=# CREATE DATABASE media WITH OWNER media;
    postgres=# quit
@@ -77,7 +77,7 @@ These instructions have been tested with Ubuntu 22.04
    ```
    Make sure you reload postgres when changing this file:
    ```sh
-   $ sudo systemctl reload postgresql
+   sudo systemctl reload postgresql
    ```
 
    5.4. Create the database schema by running:
@@ -87,9 +87,9 @@ These instructions have been tested with Ubuntu 22.04
 
 6. Run the app!
    ```sh
-   $ npm install
-   $ npm run build
-   $ npm start
+   npm install
+   npm run build
+   npm start
    ```
 
 7. Process some media files.
@@ -99,7 +99,7 @@ These instructions have been tested with Ubuntu 22.04
    To manually process media files, run the following command (make sure you
    have activated the python virtual environment you created earlier):
    ```sh
-   $ python3 src/scripts/media_processor.py -e .env.local -U -p /path/to/media
+   python3 src/scripts/media_processor.py -e .env.local -U -p /path/to/media
    ```
    This will recurse into the directory provided by `-p` and process any media
    files that it is able to. You can safely call this multiple times on the
