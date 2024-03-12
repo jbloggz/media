@@ -73,7 +73,7 @@ const buildNodes = (blocks: MediaBlock[]): [Node[], { [key: number]: number }] =
 
    if (count > 0) {
       nodes.push({
-         name: getNodeName(blocks[nodeIdx].day),
+         name: getNodeName(blocks[blocks.length - 1].day),
          block: nodeIdx,
          position,
       });
