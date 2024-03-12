@@ -7,10 +7,10 @@
  */
 'use client';
 
-import { useReducer, useRef, useState } from 'react';
-import { Select } from '@/components';
-import { useAPI } from '@/hooks';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useAPI, useHashRouter } from '@/hooks';
+import { Select } from '@/components';
 
 interface SearchDialogProps {
    filter: SearchFilter;
@@ -30,6 +30,7 @@ const SearchDialog = (props: SearchDialogProps) => {
    const dialogRef = useRef<HTMLDialogElement>(null);
    const [activeTab, setActiveTab] = useState('media');
    const [filter, dispatchFilter] = useReducer(searchReducer, props.filter);
+   const router = useHashRouter((v) => !v && dialogRef.current && dialogRef.current.close());
 
    const typeQuery = useAPI<string[]>({ url: '/api/searchOptions?field=type' });
    const camerQuery = useAPI<string[]>({ url: '/api/searchOptions?field=make,model' });
@@ -38,19 +39,20 @@ const SearchDialog = (props: SearchDialogProps) => {
 
    const submit = () => {
       props.setFilter(filter);
-      dialogRef.current && dialogRef.current.close();
+      router.back();
    };
 
    const cancel = () => {
       /* Reset back the previous search filter */
       dispatchFilter(props.filter);
-      dialogRef.current && dialogRef.current.close();
+      router.back();
    };
 
    const show = () => {
       /* Show the modal, but make sure no inputs are focussed */
       if (dialogRef.current) {
          dialogRef.current.showModal();
+         router.push(`search`);
          dialogRef.current.querySelectorAll('input').forEach((elem) => elem.blur());
       }
    };

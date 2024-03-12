@@ -16,6 +16,7 @@ import { MediaCarousel, MediaInformation } from '.';
 interface ImageDialogProps {
    id: number;
    onClose: () => void;
+   onChange:(id: number) => void;
 }
 
 const isTouchEnabled = () => {
@@ -84,10 +85,10 @@ const MediaDialog = (props: ImageDialogProps) => {
          if (!media) {
             return;
          }
-
+         props.onChange(media.id);
          setState({ ...state, id: media.id });
       },
-      [state]
+      [state, props]
    );
 
    const onSwipeComplete = useCallback((dir?: SwipeDirections) => {

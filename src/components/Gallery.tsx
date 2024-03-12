@@ -7,9 +7,9 @@
  */
 'use client';
 
-import { MediaDialog, Scrubber, ThumbnailBlock } from '@/components';
-import { useThrottleFn } from '@/hooks';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { MediaDialog, Scrubber, ThumbnailBlock } from '@/components';
+import { useHashRouter, useThrottleFn } from '@/hooks';
 
 /* How many pixels away from the start/end are we allowed to add/remove blocks */
 const addBlockThreshold = 5000;
@@ -37,6 +37,7 @@ const Gallery = (props: GalleryProps) => {
    const [visibleBlock, setVisibleBlock] = useState(0);
    const [isScrubbing, setIsScrubbing] = useState(false);
    const [selectedImage, setSelectedImage] = useState<number | null>(null);
+   const router = useHashRouter((v) => !v && setSelectedImage(null));
 
    /* Called when the user is scrubbing */
    const onScrub = (idx: number) => {
@@ -171,7 +172,10 @@ const Gallery = (props: GalleryProps) => {
                className={'pb-6'}
                block={block}
                ref={(elem) => (blockRef.current[blockRange.start + idx] = elem)}
-               onImageClick={setSelectedImage}
+               onImageClick={(id) => {
+                  router.push(`view:${id}`);
+                  setSelectedImage(id);
+               }}
             />
          ))}
          <Scrubber
@@ -182,7 +186,18 @@ const Gallery = (props: GalleryProps) => {
             onScrubStart={() => setIsScrubbing(true)}
             onScrubStop={() => setIsScrubbing(false)}
          />
-         {selectedImage && <MediaDialog id={selectedImage} onClose={() => setSelectedImage(null)} />}
+         {selectedImage && (
+            <MediaDialog
+               id={selectedImage}
+               onClose={() => {
+                  router.back();
+               }}
+               onChange={(id) => {
+                  router.replace(`view:${id}`);
+                  setSelectedImage(id);
+               }}
+            />
+         )}
       </main>
    );
 };
