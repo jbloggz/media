@@ -42,7 +42,6 @@ export const GET = async (request: NextRequest) => {
 
       return new NextResponse(buf, { status: 200, headers });
    } catch (e) {
-      console.log(e);
       return NextResponse.json({ message: 'Cannot find thumbnail' + e }, { status: 404 });
    }
 };

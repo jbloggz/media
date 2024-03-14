@@ -18,6 +18,15 @@ interface MediaBlock {
    total: number;
 }
 
+/* GPS coordinates */
+interface GpsCoord {
+   /* Latitude in degrees [-90, 90] */
+   lat: number;
+
+   /* Longitude in degrees [-180, 180] */
+   lng: number;
+}
+
 /* Metadata for a thumbnail */
 interface ThumbMeta {
    /* The id of the media */
@@ -62,8 +71,8 @@ interface SearchFilter {
    /* Maximum file size in bytes */
    sizeMax?: number;
 
-   /* GPS coordinates (lat,lng) */
-   location?: string;
+   /* GPS coordinates */
+   location?: GpsCoord;
 
    /* Location radius in km */
    radius?: number;

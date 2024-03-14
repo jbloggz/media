@@ -7,8 +7,9 @@
  */
 
 import { useContext } from 'react';
-import { useAPI } from '.';
 import { SearchContext } from '@/context';
+import { isGpsCoord } from '@/typeGuards';
+import { useAPI } from '.';
 
 type Params = Record<string, string | number | (string | number)[]>;
 
@@ -34,11 +35,13 @@ interface SearchRequest {
  * @returns A url query parameter string
  */
 const buildQuery = (filter: SearchFilter, params: Params): string => {
-   const allParams = {...params, ...filter};
+   const allParams = { ...params, ...filter };
 
    const urlParams = new URLSearchParams();
    for (const [key, value] of Object.entries(allParams)) {
-      if (Array.isArray(value)) {
+      if (isGpsCoord(value)) {
+         urlParams.append(key, `${value.lat},${value.lng}`);
+      } else if (Array.isArray(value)) {
          for (const opt of value) {
             urlParams.append(key, opt.toString());
          }

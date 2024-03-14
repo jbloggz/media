@@ -89,7 +89,6 @@ export const searchParamsToSQL = (params: URLSearchParams): [string, string[]] =
       /* Convert the radius from km to degrees */
       const degreeDiff = +(params.get('radius') || 1) / 111.139;
       const [lat, lng] = gps.split(',').map((v) => +v);
-      console.log(lat, lng, degreeDiff);
       filters.push(`latitude BETWEEN ${lat - degreeDiff} AND ${lat + degreeDiff}`);
       filters.push(`longitude BETWEEN ${lng - degreeDiff} AND ${lng + degreeDiff}`);
    }
