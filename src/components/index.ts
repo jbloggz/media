@@ -10,6 +10,7 @@ import AppDrawer from './AppDrawer';
 import Gallery from './Gallery';
 import ImageSkeleton from './ImageSkeleton';
 import Loader from './Loader';
+import Map, { MapCircle } from './Map';
 import MediaCarousel from './MediaCarousel';
 import MediaDialog from './MediaDialog';
 import MediaInformation from './MediaInformation';
@@ -28,6 +29,8 @@ export {
    Gallery,
    ImageSkeleton,
    Loader,
+   Map,
+   MapCircle,
    MediaCarousel,
    MediaDialog,
    MediaInformation,

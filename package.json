@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",
+    "@vis.gl/react-google-maps": "^0.7.1",
     "bcryptjs": "^2.4.3",
     "mime": "^4.0.1",
     "moment-timezone": "^0.5.45",

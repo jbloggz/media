@@ -86,8 +86,8 @@ export const searchParamsToSQL = (params: URLSearchParams): [string, string[]] =
 
    const gps = params.get('location');
    if (gps) {
-      /* Convert the radius from km to degrees */
-      const degreeDiff = +(params.get('radius') || 1) / 111.139;
+      /* Convert the radius from meters to degrees */
+      const degreeDiff = +(params.get('radius') || 1) / 111139;
       const [lat, lng] = gps.split(',').map((v) => +v);
       filters.push(`latitude BETWEEN ${lat - degreeDiff} AND ${lat + degreeDiff}`);
       filters.push(`longitude BETWEEN ${lng - degreeDiff} AND ${lng + degreeDiff}`);

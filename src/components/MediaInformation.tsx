@@ -9,7 +9,8 @@
 
 import { basename } from 'path';
 import { useState } from 'react';
-import { ThumbnailImage } from '.';
+import { AdvancedMarker } from '@vis.gl/react-google-maps';
+import { Map, ThumbnailImage } from '.';
 
 interface MediaInformationProps {
    media: Media;
@@ -19,7 +20,7 @@ const MediaInformation = ({ media }: MediaInformationProps) => {
    const [activeTab, setActiveTab] = useState('general');
 
    return (
-      <div className="overflow-y-auto overflow-x-hidden">
+      <div className="overflow-y-auto overflow-x-hidden flex flex-col h-full">
          <div className="w-[175px] mt-10 mb-6 mx-auto">
             <ThumbnailImage meta={media} noOverlay />
          </div>
@@ -39,15 +40,15 @@ const MediaInformation = ({ media }: MediaInformationProps) => {
             </a>
          </div>
 
-         <div className={`${activeTab === 'general' ? 'block' : 'hidden'} space-y-5`}>
-            <label className="form-control">
+         <div className={`${activeTab === 'general' ? 'block' : 'hidden'} space-y-5 flex-grow`}>
+            <div className="form-control">
                <div className="label">
                   <span className="label-text">Filename</span>
                </div>
                <p>{basename(media.path)}</p>
-            </label>
+            </div>
 
-            <label className="form-control">
+            <div className="form-control">
                <div className="label">
                   <span className="label-text">Timestamp</span>
                </div>
@@ -62,67 +63,67 @@ const MediaInformation = ({ media }: MediaInformationProps) => {
                      second: '2-digit',
                   })}
                </p>
-            </label>
+            </div>
 
-            <label className="form-control">
+            <div className="form-control">
                <div className="label">
                   <span className="label-text">Media Type</span>
                </div>
                <p>{media.type}</p>
-            </label>
+            </div>
             {media.type === 'video' && (
-               <label className="form-control w-full">
+               <div className="form-control w-full">
                   <div className="label">
                      <span className="label-text">Video Duration (seconds)</span>
                   </div>
                   <p>{media.duration}</p>
-               </label>
+               </div>
             )}
 
-            <label className="form-control">
+            <div className="form-control">
                <div className="label">
                   <span className="label-text">Camera (make/model)</span>
                </div>
                <p>{media.make || media.model ? `${media.make} ${media.model}` : 'Unknown'}</p>
-            </label>
+            </div>
          </div>
 
-         <div className={`${activeTab === 'size' ? 'block' : 'hidden'} space-y-5`}>
-            <label className="form-control w-full">
+         <div className={`${activeTab === 'size' ? 'block' : 'hidden'} space-y-5 flex-grow`}>
+            <div className="form-control w-full">
                <div className="label">
                   <span className="label-text">Height (pixels)</span>
                </div>
                <p>{media.height}</p>
-            </label>
+            </div>
 
-            <label className="form-control w-full">
+            <div className="form-control w-full">
                <div className="label">
                   <span className="label-text">Width (pixels)</span>
                </div>
                <p>{media.width}</p>
-            </label>
+            </div>
 
-            <label className="form-control w-full">
+            <div className="form-control w-full">
                <div className="label">
                   <span className="label-text">File Size (bytes)</span>
                </div>
                <p>{media.size}</p>
-            </label>
+            </div>
          </div>
 
-         <div className={`${activeTab === 'location' ? 'block' : 'hidden'} space-y-5`}>
-            <label className="form-control">
-               <div className="label">
-                  <span className="label-text">GPS Location (degrees)</span>
-               </div>
-               <p>{media.latitude && media.longitude ? `${media.latitude},${media.longitude}` : 'Unknown'}</p>
-            </label>
+         <div className={`${activeTab === 'location' ? 'block' : 'hidden'} space-y-5 flex-grow`}>
+            {media.latitude && media.longitude ? (
+               <Map mapId={'InfoMap'} center={{ lat: media.latitude, lng: media.longitude }} zoom={15}>
+                  <AdvancedMarker position={{ lat: media.latitude, lng: media.longitude }} />
+               </Map>
+            ) : (
+               <p>Unknown</p>
+            )}
          </div>
 
-         <div className={`${activeTab === 'tags' ? 'block' : 'hidden'} space-y-5`}>
+         <div className={`${activeTab === 'tags' ? 'block' : 'hidden'} space-y-5 flex-grow`}>
             <p className="pt-2">Coming soon!</p>
          </div>
-
       </div>
    );
 };

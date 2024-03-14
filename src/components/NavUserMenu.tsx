@@ -13,13 +13,13 @@ import Link from 'next/link';
 const NavUserMenu = (props: { email: string }) => {
    return (
       <div className="dropdown dropdown-bottom dropdown-end">
-         <label tabIndex={0} className="btn m-1 btn-circle btn-ghost">
+         <button tabIndex={0} className="btn m-1 btn-circle btn-ghost">
             <div className="avatar placeholder">
                <div className="bg-neutral text-neutral-content rounded-full w-8">
                   <span className="text-md">{props.email.substring(0, 1).toUpperCase()}</span>
                </div>
             </div>
-         </label>
+         </button>
          <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box">
             <li className="!cursor-default disabled">
                <a>{props.email}</a>

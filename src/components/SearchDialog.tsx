@@ -7,10 +7,10 @@
  */
 'use client';
 
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAPI, useHashRouter } from '@/hooks';
-import { Select } from '@/components';
+import { Map, MapCircle, Select } from '@/components';
 
 interface SearchDialogProps {
    filter: SearchFilter;
@@ -18,12 +18,15 @@ interface SearchDialogProps {
 }
 
 const searchReducer = (current: SearchFilter, filter: SearchFilter | null): SearchFilter => {
-   return filter
+   const newFilter = filter
       ? {
            ...current,
            ...filter,
         }
       : {};
+
+   /* Remove any undefined values */
+   return Object.fromEntries(Object.entries(newFilter).filter(([_, value]) => value !== undefined));
 };
 
 const SearchDialog = (props: SearchDialogProps) => {
@@ -34,34 +37,50 @@ const SearchDialog = (props: SearchDialogProps) => {
 
    const typeQuery = useAPI<string[]>({ url: '/api/searchOptions?field=type' });
    const camerQuery = useAPI<string[]>({ url: '/api/searchOptions?field=make,model' });
+   const latestCoords = useAPI<GpsCoord>({ url: '/api/latestGps' });
    const typeOptions: SelectOption[] = typeQuery.data ? typeQuery.data.map((v) => ({ label: v, value: v })) : [];
    const cameraOptions: SelectOption[] = camerQuery.data ? camerQuery.data.map((v) => ({ label: v, value: v })) : [];
 
-   const submit = () => {
+   const submit = useCallback(() => {
       props.setFilter(filter);
       router.back();
-   };
+   }, [props, router, filter]);
 
-   const cancel = () => {
+   const cancel = useCallback(() => {
       /* Reset back the previous search filter */
       dispatchFilter(props.filter);
       router.back();
-   };
+   }, [router, props]);
 
-   const show = () => {
+   const show = useCallback(() => {
       /* Show the modal, but make sure no inputs are focussed */
       if (dialogRef.current) {
          dialogRef.current.showModal();
          router.push(`search`);
          dialogRef.current.querySelectorAll('input').forEach((elem) => elem.blur());
       }
-   };
+   }, [router]);
 
-   const reset = () => {
+   const reset = useCallback(() => {
       /* Clear the filter */
       dispatchFilter(null);
       props.setFilter({});
-   };
+   }, [props]);
+
+   /* Bind keyboard to actions */
+   useEffect(() => {
+      const handleKeyPress = (event: KeyboardEvent) => {
+         if (event.key === 'Escape') {
+            cancel();
+         }
+      };
+
+      document.addEventListener('keydown', handleKeyPress);
+
+      return () => {
+         document.removeEventListener('keydown', handleKeyPress);
+      };
+   }, [cancel]);
 
    return (
       <div className="fixed top-3 right-16">
@@ -75,7 +94,7 @@ const SearchDialog = (props: SearchDialogProps) => {
          )}
          <dialog ref={dialogRef} className="modal">
             <div className="modal-box flex flex-col w-full h-full max-h-full max-w-full md:max-w-2xl md:max-h-[750px]">
-               <div className="container space-y-5">
+               <div className="container space-y-5 h-full flex flex-col">
                   <h1 className="text-xl font-bold">Search</h1>
 
                   <div role="tablist" className="tabs tabs-lifted">
@@ -85,15 +104,17 @@ const SearchDialog = (props: SearchDialogProps) => {
                      <a role="tab" className={`tab ${activeTab == 'file' ? 'tab-active' : ''}`} onClick={() => setActiveTab('file')}>
                         File
                      </a>
-                     <a role="tab" className={`tab ${activeTab == 'location' ? 'tab-active' : ''}`} onClick={() => setActiveTab('location')}>
-                        Location
-                     </a>
+                     {latestCoords.data && (
+                        <a role="tab" className={`tab ${activeTab == 'location' ? 'tab-active' : ''}`} onClick={() => setActiveTab('location')}>
+                           Location
+                        </a>
+                     )}
                      <a role="tab" className={`tab ${activeTab == 'people' ? 'tab-active' : ''}`} onClick={() => setActiveTab('people')}>
                         People
                      </a>
                   </div>
 
-                  <div className={`${activeTab === 'media' ? 'block' : 'hidden'}`}>
+                  <div className={`${activeTab === 'media' ? 'block' : 'hidden'} flex-grow`}>
                      <div className="form-control w-full max-w-xs">
                         <div className="label">
                            <span className="label-text">Media Type</span>
@@ -150,7 +171,7 @@ const SearchDialog = (props: SearchDialogProps) => {
                      </div>
                   </div>
 
-                  <div className={`${activeTab === 'file' ? 'block' : 'hidden'}`}>
+                  <div className={`${activeTab === 'file' ? 'block' : 'hidden'} flex-grow`}>
                      <label className="form-control w-full">
                         <div className="label">
                            <span className="label-text">Height (pixels)</span>
@@ -227,42 +248,40 @@ const SearchDialog = (props: SearchDialogProps) => {
                      </label>
                   </div>
 
-                  <div className={`${activeTab === 'location' ? 'block' : 'hidden'}`}>
-                     <label className="form-control w-full max-w-xs">
-                        <div className="label">
-                           <span className="label-text">GPS Location (degrees)</span>
-                        </div>
-                        <input
-                           name="location"
-                           type="text"
-                           value={filter.location || ''}
-                           onChange={(e) => dispatchFilter({ location: e.target.value })}
-                           placeholder="latitude,longitude"
-                           className="input input-bordered"
-                        />
-                     </label>
-
-                     <label className="form-control w-full max-w-xs">
-                        <div className="label">
-                           <span className="label-text">Radius (km)</span>
-                        </div>
-                        <input
-                           name="radius"
-                           type="number"
-                           value={filter.radius || ''}
-                           onChange={(e) => dispatchFilter({ radius: +e.target.value })}
-                           placeholder="1"
-                           className="input input-bordered w-24"
-                        />
-                     </label>
+                  <div className={`${activeTab === 'location' ? 'block' : 'hidden'} flex-grow relative`}>
+                     {filter.location && (
+                        <button
+                           data-theme="light"
+                           onClick={() => dispatchFilter({ radius: undefined, location: undefined })}
+                           className="google-map-btn absolute m-3 right-0 z-10"
+                        >
+                           Clear location
+                        </button>
+                     )}
+                     {latestCoords.data && (
+                        <Map
+                           mapId={'SeachMap'}
+                           center={filter.location || latestCoords.data}
+                           onClick={(pos) => !filter.location && dispatchFilter({ location: pos })}
+                        >
+                           {filter.location && (
+                              <MapCircle
+                                 center={filter.location}
+                                 radius={filter.radius}
+                                 editable
+                                 onChange={(center, radius) => dispatchFilter({ location: center, radius: radius })}
+                              />
+                           )}
+                        </Map>
+                     )}
                   </div>
 
-                  <div className={`${activeTab === 'people' ? 'block' : 'hidden'}`}>
+                  <div className={`${activeTab === 'people' ? 'block' : 'hidden'} flex-grow`}>
                      <p>Coming soon!</p>
                   </div>
                </div>
 
-               <div className="modal-action mt-auto">
+               <div className="modal-action">
                   <button className="btn" onClick={submit}>
                      Search
                   </button>
