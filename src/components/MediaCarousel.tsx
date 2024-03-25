@@ -19,7 +19,7 @@ interface MediaCarouselProps {
    onTransitionEnd: () => void;
 }
 
-const MediaCarousel = (props: MediaCarouselProps) => {
+export const MediaCarousel = (props: MediaCarouselProps) => {
    return (
       <>
          {props.state.prev && (
@@ -72,5 +72,3 @@ const MediaCarousel = (props: MediaCarouselProps) => {
       </>
    );
 };
-
-export default MediaCarousel;

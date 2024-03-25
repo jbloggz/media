@@ -16,7 +16,7 @@ interface MediaInformationProps {
    media: Media;
 }
 
-const MediaInformation = ({ media }: MediaInformationProps) => {
+export const MediaInformation = ({ media }: MediaInformationProps) => {
    const [activeTab, setActiveTab] = useState('general');
 
    return (
@@ -127,5 +127,3 @@ const MediaInformation = ({ media }: MediaInformationProps) => {
       </div>
    );
 };
-
-export default MediaInformation;

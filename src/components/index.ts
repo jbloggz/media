@@ -3,44 +3,22 @@
  *
  * Author: Josef Barnes
  *
- * This file exports all the components
+ * Barrel file for components
  */
 
-import AppDrawer from './AppDrawer';
-import Gallery from './Gallery';
-import ImageSkeleton from './ImageSkeleton';
-import Loader from './Loader';
-import Map, { MapCircle } from './Map';
-import MediaCarousel from './MediaCarousel';
-import MediaDialog from './MediaDialog';
-import MediaInformation from './MediaInformation';
-import MediaItem from './MediaItem';
-import NavBar from './NavBar';
-import NavUserMenu from './NavUserMenu';
-import Scrubber from './Scrubber';
-import Select from './Select';
-import SearchDialog from './SearchDialog';
-import SessionProvider from './SessionProvider';
-import ThumbnailBlock from './ThumbnailBlock';
-import ThumbnailImage from './ThumbnailImage';
-
-export {
-   AppDrawer,
-   Gallery,
-   ImageSkeleton,
-   Loader,
-   Map,
-   MapCircle,
-   MediaCarousel,
-   MediaDialog,
-   MediaInformation,
-   MediaItem,
-   NavBar,
-   NavUserMenu,
-   Scrubber,
-   Select,
-   SearchDialog,
-   SessionProvider,
-   ThumbnailBlock,
-   ThumbnailImage,
-};
+export * from './AppDrawer';
+export * from './Gallery';
+export * from './ImageSkeleton';
+export * from './Loader';
+export * from './Map';
+export * from './MediaCarousel';
+export * from './MediaDialog';
+export * from './MediaInformation';
+export * from './MediaItem';
+export * from './NavBar';
+export * from './NavUserMenu';
+export * from './Scrubber';
+export * from './Select';
+export * from './SearchDialog';
+export * from './ThumbnailBlock';
+export * from './ThumbnailImage';

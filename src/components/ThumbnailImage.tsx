@@ -8,7 +8,6 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useState } from 'react';
 import { ImageSkeleton } from '.';
 
 interface ThumbnailImageProps {
@@ -18,35 +17,29 @@ interface ThumbnailImageProps {
 }
 
 const prettyDuration = (duration: number): string => {
-   duration = Math.floor(duration / 1000);
-   const hours = Math.floor(duration / 3600);
-   const minutes = Math.floor(duration / 60) - hours * 60;
-   const seconds = duration - hours * 60 - minutes * 60;
+   const duration_s = Math.floor(duration / 1000);
+   const hours = Math.floor(duration_s / 3600);
+   const minutes = Math.floor(duration_s / 60) - hours * 60;
+   const seconds = duration_s - hours * 3600 - minutes * 60;
 
    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 };
 
-/* How far from the screen before we load an image */
-const imagePreloadOffset = 2000;
-
-const ThumbnailImage = (props: ThumbnailImageProps) => {
-   const [render, setRender] = useState(false);
-   const container = useRef<HTMLDivElement>(null);
-   const imageRect = container.current && container.current.getBoundingClientRect();
-   const imageTop = imageRect?.top || NaN;
-   const imageBottom = imageRect?.bottom || NaN;
-
-   if (!render && imageBottom > -imagePreloadOffset && imageTop < window.innerHeight + imagePreloadOffset) {
-      setRender(true);
-   }
-
+export const ThumbnailImage = (props: ThumbnailImageProps) => {
    return (
       <div className="relative w-full aspect-square overflow-hidden" onClick={() => props.onClick && props.meta?.id && props.onClick(props.meta.id)}>
-         <div ref={container} className="flex items-center justify-center w-full h-full bg-gray-300 rounded dark:bg-gray-700 relative group">
+         <div className="flex items-center justify-center w-full h-full bg-gray-300 rounded dark:bg-gray-700 relative group">
             <ImageSkeleton />
             {props.meta && (
                <>
-                  <Image unoptimized={true} src={`/api/thumb?id=${props.meta.id}`} fill={true} alt="" sizes="100px" className={props.onClick ? 'cursor-pointer' : ''} />
+                  <Image
+                     unoptimized={true}
+                     src={`/api/thumb?id=${props.meta.id}`}
+                     fill={true}
+                     alt=""
+                     sizes="100px"
+                     className={props.onClick ? 'cursor-pointer' : ''}
+                  />
                   {props.meta.type === 'video' && !props.noOverlay && (
                      <>
                         <Image
@@ -66,5 +59,3 @@ const ThumbnailImage = (props: ThumbnailImageProps) => {
       </div>
    );
 };
-
-export default ThumbnailImage;

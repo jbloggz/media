@@ -31,7 +31,7 @@ export interface MediaState {
    swipeDir?: SwipeDirections;
 }
 
-const MediaDialog = (props: ImageDialogProps) => {
+export const MediaDialog = (props: ImageDialogProps) => {
    const [state, setState] = useState<MediaState>({ id: props.id });
    const [showControls, setShowControls] = useState(false);
    const [showInfo, setShowInfo] = useState(false);
@@ -171,5 +171,3 @@ const MediaDialog = (props: ImageDialogProps) => {
       </dialog>
    );
 };
-
-export default MediaDialog;

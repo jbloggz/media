@@ -11,7 +11,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 
-const AppDrawer = (props: { children: React.ReactNode }) => {
+export const AppDrawer = (props: { children: React.ReactNode }) => {
    const [isOpen, setOpen] = useState(false);
 
    return (
@@ -39,5 +39,3 @@ const AppDrawer = (props: { children: React.ReactNode }) => {
       </div>
    );
 };
-
-export default AppDrawer;

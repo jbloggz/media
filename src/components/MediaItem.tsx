@@ -20,7 +20,7 @@ interface MediaItemProps {
    isCurrent?: boolean;
 }
 
-const MediaItem = (props: MediaItemProps) => {
+export const MediaItem = (props: MediaItemProps) => {
    return !props.media ? (
       <Loader isLoading={props.isCurrent ? true : false} />
    ) : props.media.type === 'image' ? (
@@ -52,5 +52,3 @@ const MediaItem = (props: MediaItemProps) => {
       </video>
    );
 };
-
-export default MediaItem;

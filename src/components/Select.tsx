@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import ReactSelect, { GroupBase, Props } from 'react-select';
 
-const Select = <Option, IsMulti extends boolean = false, Group extends GroupBase<Option> = GroupBase<Option>>(
+export const Select = <Option, IsMulti extends boolean = false, Group extends GroupBase<Option> = GroupBase<Option>>(
    props: Props<Option, IsMulti, Group>
 ) => {
    const [menuIsOpen, setMenuIsOpen] = useState(false);
@@ -25,9 +25,7 @@ const Select = <Option, IsMulti extends boolean = false, Group extends GroupBase
             classNamePrefix="react-select"
             {...props}
          />
-         <div className="opacity-0 h-12 w-9 absolute top-0 right-px hover:cursor-pointer" onClick={() => setMenuIsOpen(!menuIsOpen)}></div>
+         <div role='button' className="opacity-0 h-12 w-9 absolute top-0 right-px hover:cursor-pointer" onClick={() => setMenuIsOpen(!menuIsOpen)}></div>
       </div>
    );
 };
-
-export default Select;

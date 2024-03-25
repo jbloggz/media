@@ -10,8 +10,8 @@
 import React, { PropsWithChildren, useEffect } from 'react';
 import { APIProvider, Map as GoogleMap, useMap } from '@vis.gl/react-google-maps';
 
-const defaultZoomLevel = 12;
-const defaultSearchRadius = 1000;
+export const defaultZoomLevel = 12;
+export const defaultSearchRadius = 1000;
 
 const calculateDefaultSearchRadius = (zoom: number) => {
    return defaultSearchRadius * Math.pow(2, defaultZoomLevel - zoom);
@@ -38,7 +38,7 @@ export const MapCircle = (props: MapCircleProps) => {
          return;
       }
 
-      const radius = props.radius || calculateDefaultSearchRadius(map.getZoom() || defaultSearchRadius);
+      const radius = props.radius || calculateDefaultSearchRadius(map.getZoom() || defaultZoomLevel);
       const circle = new google.maps.Circle({
          map,
          center: props.center,
@@ -65,7 +65,7 @@ export const MapCircle = (props: MapCircleProps) => {
    return <></>;
 };
 
-const Map = (props: PropsWithChildren<MapProps>) => {
+export const Map = (props: PropsWithChildren<MapProps>) => {
    return process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
       <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
          <GoogleMap
@@ -83,5 +83,3 @@ const Map = (props: PropsWithChildren<MapProps>) => {
       <p>Cannot use maps</p>
    );
 };
-
-export default Map;

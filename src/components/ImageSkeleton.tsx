@@ -6,10 +6,11 @@
  * A skeleton for an image
  */
 
-const ImageSkeleton = () => {
+export const ImageSkeleton = () => {
    return (
       <svg
          className="w-10 h-10 text-gray-200 dark:text-gray-600"
+         role="img"
          aria-hidden="true"
          xmlns="http://www.w3.org/2000/svg"
          fill="currentColor"
@@ -19,5 +20,3 @@ const ImageSkeleton = () => {
       </svg>
    );
 };
-
-export default ImageSkeleton;

@@ -10,7 +10,7 @@
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 
-const NavUserMenu = (props: { email: string }) => {
+export const NavUserMenu = (props: { email: string }) => {
    return (
       <div className="dropdown dropdown-bottom dropdown-end">
          <button tabIndex={0} className="btn m-1 btn-circle btn-ghost">
@@ -37,5 +37,3 @@ const NavUserMenu = (props: { email: string }) => {
       </div>
    );
 };
-
-export default NavUserMenu;

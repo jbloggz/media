@@ -10,7 +10,7 @@ import { NavUserMenu } from '@/components';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { getServerSession } from 'next-auth';
 
-const NavBar = async () => {
+export const NavBar = async () => {
    const session = await getServerSession();
    const email = session?.user?.email || '';
 
@@ -26,5 +26,3 @@ const NavBar = async () => {
       </nav>
    );
 };
-
-export default NavBar;

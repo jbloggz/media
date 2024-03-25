@@ -23,7 +23,7 @@ const getBlockHeading = (day: string): string => {
    return dt.toLocaleDateString('default', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
-const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function ThumbnailBlock(props, ref) {
+export const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function ThumbnailBlock(props, ref) {
    const api = useSearchAPI<ThumbMeta[]>({ url: '/api/thumbmeta', params: { day: props.block.day } });
 
    useEffect(() => {
@@ -43,5 +43,3 @@ const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(function 
       </div>
    );
 });
-
-export default ThumbnailBlock;

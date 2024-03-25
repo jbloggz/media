@@ -89,22 +89,6 @@ const buildNodes = (blocks: MediaBlock[]): [Node[], { [key: number]: number }] =
 };
 
 /**
- * Get the pixel height of a node withing the scrollbar
- *
- * @param scrollbar  The scrollbar DOM element
- * @param nodes      The list of all nodes
- * @param idx        The node index
- *
- * @returns number of pixel from the scrollbar top where the node is located
- */
-const getNodePosition = (scrollbar: HTMLDivElement | null, node: Node) => {
-   if (!scrollbar) {
-      return 0;
-   }
-   return node.position * scrollbar.clientHeight;
-};
-
-/**
  * Find the node that is closest to the sliders current position
  *
  * @param nodes           The list of all the nodes
@@ -124,7 +108,7 @@ const findClosestNode = (nodes: Node[], sliderPosition: number) => {
    return nodes[nodes.length - 1];
 };
 
-const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScrubStart, onScrubStop }: ScrubberProps) => {
+export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScrubStart, onScrubStop }: ScrubberProps) => {
    const scrollbarElemRef = useRef<HTMLDivElement>(null);
    const sliderElemRef = useRef<HTMLDivElement>(null);
    const [currentNode, setCurrentNode] = useState<Node>();
@@ -261,5 +245,3 @@ const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScrubStart,
       </div>
    );
 };
-
-export default Scrubber;

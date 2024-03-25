@@ -29,7 +29,7 @@ interface GalleryProps {
    blocks: MediaBlock[];
 }
 
-const Gallery = (props: GalleryProps) => {
+export const Gallery = (props: GalleryProps) => {
    const mainElemRef = useRef<HTMLDivElement>(null);
    const blockRef = useRef<(HTMLDivElement | null)[]>(new Array(props.blocks.length));
    const [scrollPosition, setScrollPosition] = useState(0);
@@ -201,5 +201,3 @@ const Gallery = (props: GalleryProps) => {
       </main>
    );
 };
-
-export default Gallery;

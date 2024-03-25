@@ -29,7 +29,7 @@ const searchReducer = (current: SearchFilter, filter: SearchFilter | null): Sear
    return Object.fromEntries(Object.entries(newFilter).filter(([_, value]) => value !== undefined));
 };
 
-const SearchDialog = (props: SearchDialogProps) => {
+export const SearchDialog = (props: SearchDialogProps) => {
    const dialogRef = useRef<HTMLDialogElement>(null);
    const [activeTab, setActiveTab] = useState('media');
    const [filter, dispatchFilter] = useReducer(searchReducer, props.filter);
@@ -294,5 +294,3 @@ const SearchDialog = (props: SearchDialogProps) => {
       </div>
    );
 };
-
-export default SearchDialog;

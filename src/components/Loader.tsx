@@ -21,10 +21,10 @@ interface LoaderProps<T> {
    showOnError?: boolean;
 }
 
-const Loader = <T extends object>(props: PropsWithChildren<LoaderProps<T>>) => {
+export const Loader = <T extends object>(props: PropsWithChildren<LoaderProps<T>>) => {
    useEffect(() => {
       if (props.error && props.error.message) {
-         toast.error(props.error.message || 'Unknown error occurred');
+         toast.error(props.error.message);
       }
    }, [props.error]);
 
@@ -46,5 +46,3 @@ const Loader = <T extends object>(props: PropsWithChildren<LoaderProps<T>>) => {
       props.children
    );
 };
-
-export default Loader;
