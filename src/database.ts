@@ -19,9 +19,9 @@ export default db;
  *
  * @returns The SQL query and the list of binded values
  */
-export const searchParamsToSQL = (params: URLSearchParams): [string, string[]] => {
+export const searchParamsToSQL = (params: URLSearchParams): [string, (string | number)[]] => {
    const filters: string[] = [];
-   const bindings: string[] = [];
+   const bindings: (string | number)[] = [];
    let idx = 1;
 
    const types = params.getAll('type');
@@ -37,49 +37,49 @@ export const searchParamsToSQL = (params: URLSearchParams): [string, string[]] =
    }
 
    const durationMin = params.get('durationMin');
-   if (durationMin) {
+   if (durationMin && !isNaN(+durationMin)) {
       filters.push(`duration >= $${idx++}`);
       bindings.push(durationMin);
    }
 
    const durationMax = params.get('durationMax');
-   if (durationMax) {
+   if (durationMax && !isNaN(+durationMax)) {
       filters.push(`duration <= $${idx++}`);
       bindings.push(durationMax);
    }
 
    const heightMin = params.get('heightMin');
-   if (heightMin) {
+   if (heightMin && !isNaN(+heightMin)) {
       filters.push(`height >= $${idx++}`);
       bindings.push(heightMin);
    }
 
    const heightMax = params.get('heightMax');
-   if (heightMax) {
+   if (heightMax && !isNaN(+heightMax)) {
       filters.push(`height <= $${idx++}`);
       bindings.push(heightMax);
    }
 
    const widthMin = params.get('widthMin');
-   if (widthMin) {
+   if (widthMin && !isNaN(+widthMin)) {
       filters.push(`width >= $${idx++}`);
       bindings.push(widthMin);
    }
 
    const widthMax = params.get('widthMax');
-   if (widthMax) {
+   if (widthMax && !isNaN(+widthMax)) {
       filters.push(`width <= $${idx++}`);
       bindings.push(widthMax);
    }
 
    const sizeMin = params.get('sizeMin');
-   if (sizeMin) {
+   if (sizeMin && !isNaN(+sizeMin)) {
       filters.push(`size >= $${idx++}`);
       bindings.push(sizeMin);
    }
 
    const sizeMax = params.get('sizeMax');
-   if (sizeMax) {
+   if (sizeMax && !isNaN(+sizeMax)) {
       filters.push(`size <= $${idx++}`);
       bindings.push(sizeMax);
    }
@@ -89,8 +89,10 @@ export const searchParamsToSQL = (params: URLSearchParams): [string, string[]] =
       /* Convert the radius from meters to degrees */
       const degreeDiff = +(params.get('radius') || 1) / 111139;
       const [lat, lng] = gps.split(',').map((v) => +v);
-      filters.push(`latitude BETWEEN ${lat - degreeDiff} AND ${lat + degreeDiff}`);
-      filters.push(`longitude BETWEEN ${lng - degreeDiff} AND ${lng + degreeDiff}`);
+      if (!isNaN(degreeDiff) && !isNaN(lat) && !isNaN(lng)) {
+         filters.push(`latitude BETWEEN ${lat - degreeDiff} AND ${lat + degreeDiff}`);
+         filters.push(`longitude BETWEEN ${lng - degreeDiff} AND ${lng + degreeDiff}`);
+      }
    }
 
    return [filters.join(' AND '), bindings];
