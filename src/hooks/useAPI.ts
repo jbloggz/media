@@ -42,16 +42,11 @@ const fetcher = async <T>(req: APIRequest<T>) => {
       throw new APIError('Invalid API response', 500);
    }
    if (!resp.ok) {
-      throw new APIError(data.message, code);
-   }
-   if (code >= 400) {
-      throw new APIError(resp.statusText, code);
+      throw new APIError(data.message || resp.statusText, code);
    }
    return data as T;
 };
 
-const useAPI = <T>(req: APIRequest<T>) => {
+export const useAPI = <T>(req: APIRequest<T>) => {
    return useSWR<T, APIError>(req.disabled ? null : [req], ([r]) => fetcher(r), { shouldRetryOnError: false, revalidateOnFocus: false });
 };
-
-export default useAPI;

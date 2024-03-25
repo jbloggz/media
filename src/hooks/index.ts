@@ -3,14 +3,12 @@
  *
  * Author: Josef Barnes
  *
- * This file exports all the hooks
+ * Barrel file for hooks
  */
 
-import useAPI from './useAPI';
-import useHashRouter from './useHashRouter';
-import useIntervalFn from './useIntervalFn';
-import useSearchAPI from './useSearchAPI';
-import useThrottleFn from './useThrottleFn';
-import useTimeoutFn from './useTimeoutFn';
-
-export { useAPI, useHashRouter, useIntervalFn, useSearchAPI, useThrottleFn, useTimeoutFn };
+export * from './useAPI';
+export * from './useHashRouter';
+export * from './useIntervalFn';
+export * from './useSearchAPI';
+export * from './useThrottleFn';
+export * from './useTimeoutFn';

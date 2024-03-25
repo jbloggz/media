@@ -13,7 +13,10 @@ import { useAPI } from '.';
 
 type Params = Record<string, string | number | (string | number)[]>;
 
-interface SearchRequest {
+/**
+ * An API request that will use the search filters currently defined
+ */
+export interface SearchRequest {
    /* The url to search */
    url: string;
 
@@ -53,10 +56,8 @@ const buildQuery = (filter: SearchFilter, params: Params): string => {
    return urlParams.toString();
 };
 
-const useSearchAPI = <T>(req: SearchRequest) => {
+export const useSearchAPI = <T>(req: SearchRequest) => {
    const filter = useContext(SearchContext);
    const query = buildQuery(req.filter || filter, req.params || {});
-   return useAPI<T>({ disabled: req.disabled, url: `${req.url}?${query}` });
+   return useAPI<T>({ disabled: req.disabled, url: query ? `${req.url}?${query}` : req.url });
 };
-
-export default useSearchAPI;

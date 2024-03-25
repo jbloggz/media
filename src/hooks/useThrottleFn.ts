@@ -8,7 +8,7 @@
 
 import { useEffect, useRef } from 'react';
 
-const useThrottleFn = <T>(fn: (v: T) => void, msRate: number, state: T) => {
+export const useThrottleFn = <T>(fn: (v: T) => void, msRate: number, state: T) => {
    const lastRan = useRef(Date.now());
 
    useEffect(() => {
@@ -24,5 +24,3 @@ const useThrottleFn = <T>(fn: (v: T) => void, msRate: number, state: T) => {
       };
    }, [fn, msRate, state]);
 };
-
-export default useThrottleFn;

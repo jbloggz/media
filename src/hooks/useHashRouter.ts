@@ -9,15 +9,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const useHashRouter = (onChange: (v: string) => void) => {
+export const useHashRouter = (onChange?: (v: string) => void) => {
    const router = useRouter();
-   const [hash, setHash] = useState<string>(() => window.location.hash);
+   const [hash, setHash] = useState<string>(() => window.location.hash.slice(1));
 
    const hashChangeHandler = useCallback(() => {
       const newHash = window.location.hash.slice(1);
       if (hash !== newHash) {
          setHash(newHash);
-         onChange(newHash);
+         onChange && onChange(newHash);
       }
    }, [hash, onChange]);
 
@@ -50,5 +50,3 @@ const useHashRouter = (onChange: (v: string) => void) => {
 
    return { hash, push, replace, back };
 };
-
-export default useHashRouter;

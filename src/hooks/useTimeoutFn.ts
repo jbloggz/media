@@ -8,7 +8,7 @@
 
 import { useEffect } from 'react';
 
-const useTimeout = (fn: () => void, ms: number) => {
+export const useTimeout = (fn: () => void, ms: number) => {
    useEffect(() => {
       const handler = setTimeout(() => fn(), ms);
 
@@ -17,5 +17,3 @@ const useTimeout = (fn: () => void, ms: number) => {
       };
    }, [fn, ms]);
 };
-
-export default useTimeout;
