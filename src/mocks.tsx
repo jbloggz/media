@@ -3,13 +3,13 @@
  *
  * Author: Josef Barnes
  *
- * Global mocks
+ * Global mocks for 3rd party libraries
  */
 
 import fetchMock from 'jest-fetch-mock';
 import 'jest-location-mock';
 import * as nextNavigation from 'next/navigation';
-import * as nextAuth from 'next-auth/react';
+import * as nextAuthReact from 'next-auth/react';
 import * as reactToastify from 'react-toastify';
 import * as GoogleMaps from '@vis.gl/react-google-maps';
 import * as reactSelect from 'react-select';
@@ -22,10 +22,11 @@ fetchMock.enableMocks();
 jest.mock('pg');
 
 /* Mocks for next-auth */
-jest.mock('next-auth', () => jest.fn());
+const mockGetServerSession = jest.fn();
+jest.mock('next-auth', () => ({ getServerSession: mockGetServerSession }));
 jest.mock('next-auth/react');
-const mockSignIn = jest.spyOn(nextAuth, 'signIn') as jest.MockedFunction<typeof nextAuth.signIn>;
-const mockSignOut = jest.spyOn(nextAuth, 'signOut') as jest.MockedFunction<typeof nextAuth.signOut>;
+const mockSignIn = jest.spyOn(nextAuthReact, 'signIn') as jest.MockedFunction<typeof nextAuthReact.signIn>;
+const mockSignOut = jest.spyOn(nextAuthReact, 'signOut') as jest.MockedFunction<typeof nextAuthReact.signOut>;
 
 /* Mocks for Next.js router */
 jest.mock('next/navigation');
@@ -88,6 +89,7 @@ const mocks = {
    nextAuth: {
       signIn: mockSignIn,
       signOut: mockSignOut,
+      getServerSession: mockGetServerSession,
    },
    nextNavigation: {
       router: mockNextRouter,
