@@ -13,8 +13,8 @@ import { useSearchAPI } from '@/hooks';
 import { ThumbnailImage } from '.';
 
 interface ThumbnailBlockProps {
-   className?: string;
    block: MediaBlock;
+   className?: string;
    onImageClick?: (id: number) => void;
 }
 
