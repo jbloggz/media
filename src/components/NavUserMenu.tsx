@@ -8,7 +8,6 @@
 'use client';
 
 import { signOut } from 'next-auth/react';
-import Link from 'next/link';
 
 export const NavUserMenu = (props: { email: string }) => {
    return (
@@ -24,11 +23,6 @@ export const NavUserMenu = (props: { email: string }) => {
             <li className="!cursor-default disabled">
                <a>{props.email}</a>
                <div className="divider m-0 p-0 mt-2"></div>
-            </li>
-            <li>
-               <Link href="/settings" onClick={(e) => e.currentTarget.blur()}>
-                  Settings
-               </Link>
             </li>
             <li>
                <a onClick={() => signOut()}>Logout</a>
