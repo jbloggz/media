@@ -79,6 +79,13 @@ beforeEach(() => {
    fetchMock.resetMocks();
 });
 
+/* Workaround for missing function in jsdom for <dialog> */
+beforeAll(() => {
+   HTMLDialogElement.prototype.show = jest.fn();
+   HTMLDialogElement.prototype.showModal = jest.fn();
+   HTMLDialogElement.prototype.close = jest.fn();
+});
+
 const mocks = {
    googleMaps: {
       Map: mockGoogleMap,

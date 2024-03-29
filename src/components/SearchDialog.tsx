@@ -237,7 +237,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            />
                            <span className="mx-2 my-auto">to</span>
                            <input
-                              name="SizeMax"
+                              name="sizeMax"
                               type="number"
                               value={filter.sizeMax || ''}
                               onChange={(e) => dispatchFilter({ sizeMax: +e.target.value })}
