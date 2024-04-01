@@ -34,7 +34,7 @@ interface ScrubberProps {
 
 const getNodeName = (day: string) => {
    const dt = new Date(day);
-   return dt.toLocaleDateString('default', {month: 'short', year: 'numeric'});
+   return dt.toLocaleDateString('default', { month: 'short', year: 'numeric' });
 };
 
 /**
@@ -117,6 +117,7 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
    const [isScrubbing, setIsScrubbing] = useState(false);
    const [nodes, setNodes] = useState<Node[]>([]);
    const [blockToNodeMap, setBlockToNodeMap] = useState<{ [key: number]: number }>({});
+   const scrubberHeight = scrollbarElemRef.current?.clientHeight || 0;
 
    /* Build the nodes for the scrubber */
    useEffect(() => {
@@ -131,10 +132,6 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
     */
    useThrottleFn(
       useCallback(() => {
-         const scrollbarElem = scrollbarElemRef.current;
-         if (!scrollbarElem) {
-            return;
-         }
          if (Math.abs(lastScrollPosition - scrollPosition) > 5) {
             setLastScrollPosition(scrollPosition);
             setLastScrollTime(Date.now());
@@ -151,17 +148,14 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
    useIntervalFn(
       useCallback(() => {
          const scrollbarElem = scrollbarElemRef.current;
-         if (!scrollbarElem) {
-            return;
-         }
          if (isScrubbing) {
             setLastScrollTime(Date.now());
          } else if (Math.abs(lastScrollTime - Date.now()) > scrubberHideTimeout) {
-            scrollbarElem.classList.remove('opacity-60');
-            scrollbarElem.classList.add('opacity-0');
+            scrollbarElem?.classList.remove('opacity-60');
+            scrollbarElem?.classList.add('opacity-0');
          } else {
-            scrollbarElem.classList.remove('opacity-0');
-            scrollbarElem.classList.add('opacity-60');
+            scrollbarElem?.classList.remove('opacity-0');
+            scrollbarElem?.classList.add('opacity-60');
          }
       }, [lastScrollTime, isScrubbing]),
       100
@@ -191,31 +185,29 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
     */
    const onDrag = useCallback(
       (data: DraggableData) => {
-         const scrollbarElem = scrollbarElemRef.current;
          const sliderElem = sliderElemRef.current;
-         if (!scrollbarElem || !sliderElem || nodes.length === 0) {
+         if (!sliderElem || nodes.length === 0) {
             return;
          }
-         if (data.y >= 0 && data.y <= scrollbarElem.clientHeight) {
+         if (data.y >= 0 && data.y <= scrubberHeight) {
             sliderElem.style.top = `${data.y - 16}px`;
          }
 
-         const node = findClosestNode(nodes, data.y / scrollbarElem.clientHeight);
+         const node = findClosestNode(nodes, data.y / scrubberHeight);
          if (currentNode !== node) {
             onScrub(node.block);
             setCurrentNode(node);
          }
       },
-      [currentNode, onScrub, nodes]
+      [currentNode, onScrub, nodes, scrubberHeight]
    );
 
    /*
     * If the current block changes, make sure the slider adjusts appropriately
     */
    useEffect(() => {
-      const scrollbarElem = scrollbarElemRef.current;
       const sliderElem = sliderElemRef.current;
-      if (!scrollbarElem || !sliderElem || isScrubbing || nodes.length === 0) {
+      if (!sliderElem || isScrubbing || nodes.length === 0) {
          return;
       }
 
@@ -223,9 +215,9 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
       if (node !== currentNode) {
          setCurrentNode(node);
       }
-      const position = node.position * scrollbarElemRef.current.clientHeight;
+      const position = node.position * scrubberHeight;
       sliderElem.style.top = `${position - 16}px`;
-   }, [isScrubbing, nodes, currentBlock, blockToNodeMap, currentNode]);
+   }, [isScrubbing, nodes, currentBlock, blockToNodeMap, currentNode, scrubberHeight]);
 
    return (
       <div ref={scrollbarElemRef} className="fixed w-1 bg-gray-500 top-28 bottom-10 right-2 transition-opacity duration-1000 opacity-0 rounded">
@@ -233,7 +225,7 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
             <div
                key={blocks[node.block]?.day}
                className="absolute w-1 h-1 bg-gray-700 rounded-full"
-               style={{ top: `${scrollbarElemRef.current ? node.position * scrollbarElemRef.current.clientHeight - 2 : 0}px` }}
+               style={{ top: `${node.position * scrubberHeight - 2}px` }}
             ></div>
          ))}
          <DraggableCore nodeRef={sliderElemRef} onDrag={(_, d) => onDrag(d)} onStart={onDragStart} onStop={onDragStop}>
