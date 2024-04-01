@@ -31,7 +31,7 @@ const searchReducer = (current: SearchFilter, filter: SearchFilter | null): Sear
 
 export const SearchDialog = (props: SearchDialogProps) => {
    const dialogRef = useRef<HTMLDialogElement>(null);
-   const [activeTab, setActiveTab] = useState('media');
+   const [activeTab, setActiveTab] = useState('general');
    const [filter, dispatchFilter] = useReducer(searchReducer, props.filter);
    const router = useHashRouter((v) => !v && dialogRef.current && dialogRef.current.close());
 
@@ -98,23 +98,23 @@ export const SearchDialog = (props: SearchDialogProps) => {
                   <h1 className="text-xl font-bold">Search</h1>
 
                   <div role="tablist" className="tabs tabs-lifted">
-                     <a role="tab" className={`tab ${activeTab == 'media' ? 'tab-active' : ''}`} onClick={() => setActiveTab('media')}>
-                        Media
+                     <a role="tab" className={`tab ${activeTab == 'general' ? 'tab-active' : ''}`} onClick={() => setActiveTab('general')}>
+                        General
                      </a>
-                     <a role="tab" className={`tab ${activeTab == 'file' ? 'tab-active' : ''}`} onClick={() => setActiveTab('file')}>
-                        File
+                     <a role="tab" className={`tab ${activeTab == 'size' ? 'tab-active' : ''}`} onClick={() => setActiveTab('size')}>
+                        Size
                      </a>
                      {latestCoords.data && (
-                        <a role="tab" className={`tab ${activeTab == 'location' ? 'tab-active' : ''}`} onClick={() => setActiveTab('location')}>
-                           Location
+                        <a role="tab" className={`tab ${activeTab == 'map' ? 'tab-active' : ''}`} onClick={() => setActiveTab('map')}>
+                           Map
                         </a>
                      )}
-                     <a role="tab" className={`tab ${activeTab == 'people' ? 'tab-active' : ''}`} onClick={() => setActiveTab('people')}>
-                        People
+                     <a role="tab" className={`tab ${activeTab == 'tags' ? 'tab-active' : ''}`} onClick={() => setActiveTab('tags')}>
+                        Tags
                      </a>
                   </div>
 
-                  <div className={`${activeTab === 'media' ? 'block' : 'hidden'} flex-grow`}>
+                  <div className={`${activeTab === 'general' ? 'block' : 'hidden'} flex-grow`}>
                      <div className="form-control w-full max-w-xs">
                         <div className="label">
                            <span className="label-text">Media Type</span>
@@ -171,7 +171,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                      </div>
                   </div>
 
-                  <div className={`${activeTab === 'file' ? 'block' : 'hidden'} flex-grow`}>
+                  <div className={`${activeTab === 'size' ? 'block' : 'hidden'} flex-grow`}>
                      <label className="form-control w-full">
                         <div className="label">
                            <span className="label-text">Height (pixels)</span>
@@ -248,7 +248,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                      </label>
                   </div>
 
-                  <div className={`${activeTab === 'location' ? 'block' : 'hidden'} flex-grow relative`}>
+                  <div className={`${activeTab === 'map' ? 'block' : 'hidden'} flex-grow relative`}>
                      {filter.location && (
                         <button
                            data-theme="light"
@@ -276,7 +276,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                      )}
                   </div>
 
-                  <div className={`${activeTab === 'people' ? 'block' : 'hidden'} flex-grow`}>
+                  <div className={`${activeTab === 'tags' ? 'block' : 'hidden'} flex-grow`}>
                      <p>Coming soon!</p>
                   </div>
                </div>

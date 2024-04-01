@@ -83,55 +83,55 @@ describe('SearchDialog', () => {
       expect(mocks.nextNavigation.router.back).toHaveBeenCalled();
    });
 
-   it('should default to showing the Media tab', () => {
+   it('should default to showing the General tab', () => {
       const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
-      expect(component.getByRole('tab', { name: /media/i, hidden: true })).toHaveClass('tab-active');
+      expect(component.getByRole('tab', { name: /general/i, hidden: true })).toHaveClass('tab-active');
    });
 
-   it('should show the File tab when clicked', () => {
+   it('should show the Size tab when clicked', () => {
       const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
-      const fileTab = component.getByRole('tab', { name: /file/i, hidden: true });
-      expect(fileTab).not.toHaveClass('tab-active');
+      const sizeTab = component.getByRole('tab', { name: /size/i, hidden: true });
+      expect(sizeTab).not.toHaveClass('tab-active');
       act(() => {
-         fileTab.click();
+         sizeTab.click();
       });
-      expect(fileTab).toHaveClass('tab-active');
+      expect(sizeTab).toHaveClass('tab-active');
    });
 
-   it('should show the Location tab when clicked', () => {
+   it('should show the Map tab when clicked', () => {
       const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
-      const locationTab = component.getByRole('tab', { name: /location/i, hidden: true });
-      expect(locationTab).not.toHaveClass('tab-active');
+      const mapTab = component.getByRole('tab', { name: /map/i, hidden: true });
+      expect(mapTab).not.toHaveClass('tab-active');
       act(() => {
-         locationTab.click();
+         mapTab.click();
       });
-      expect(locationTab).toHaveClass('tab-active');
+      expect(mapTab).toHaveClass('tab-active');
    });
 
-   it('should show the People tab when clicked', () => {
+   it('should show the Tags tab when clicked', () => {
       const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
-      const peopleTab = component.getByRole('tab', { name: /people/i, hidden: true });
-      expect(peopleTab).not.toHaveClass('tab-active');
+      const tagsTab = component.getByRole('tab', { name: /tags/i, hidden: true });
+      expect(tagsTab).not.toHaveClass('tab-active');
       act(() => {
-         peopleTab.click();
+         tagsTab.click();
       });
-      expect(peopleTab).toHaveClass('tab-active');
+      expect(tagsTab).toHaveClass('tab-active');
    });
 
-   it('should show the Media tab when clicked', () => {
+   it('should show the General tab when clicked', () => {
       const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
-      const peopleTab = component.getByRole('tab', { name: /people/i, hidden: true });
-      expect(peopleTab).not.toHaveClass('tab-active');
+      const tagsTab = component.getByRole('tab', { name: /tags/i, hidden: true });
+      expect(tagsTab).not.toHaveClass('tab-active');
       act(() => {
-         peopleTab.click();
+         tagsTab.click();
       });
-      expect(peopleTab).toHaveClass('tab-active');
-      const mediaTab = component.getByRole('tab', { name: /media/i, hidden: true });
-      expect(mediaTab).not.toHaveClass('tab-active');
+      expect(tagsTab).toHaveClass('tab-active');
+      const generalTab = component.getByRole('tab', { name: /general/i, hidden: true });
+      expect(generalTab).not.toHaveClass('tab-active');
       act(() => {
-         mediaTab.click();
+         generalTab.click();
       });
-      expect(mediaTab).toHaveClass('tab-active');
+      expect(generalTab).toHaveClass('tab-active');
    });
 
    it('should use media types returned from the API in the select dropdown', () => {
