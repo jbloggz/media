@@ -13,7 +13,7 @@ import { ArrowDownTrayIcon, ArrowUturnLeftIcon, InformationCircleIcon, XMarkIcon
 import { useSearchAPI } from '@/hooks';
 import { MediaCarousel, MediaInformation } from '.';
 
-interface ImageDialogProps {
+interface MediaDialogProps {
    id: number;
    onClose: () => void;
    onChange:(id: number) => void;
@@ -31,7 +31,7 @@ export interface MediaState {
    swipeDir?: SwipeDirections;
 }
 
-export const MediaDialog = (props: ImageDialogProps) => {
+export const MediaDialog = (props: MediaDialogProps) => {
    const [state, setState] = useState<MediaState>({ id: props.id });
    const [showControls, setShowControls] = useState(false);
    const [showInfo, setShowInfo] = useState(false);
