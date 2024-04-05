@@ -38,29 +38,31 @@ export const Gallery = (props: GalleryProps) => {
    const [isScrubbing, setIsScrubbing] = useState(false);
    const [selectedImage, setSelectedImage] = useState<number | null>(null);
    const router = useHashRouter((v) => !v && setSelectedImage(null));
+   const mainElem = mainElemRef.current;
 
    /* Called when the user is scrubbing */
-   const onScrub = (idx: number) => {
-      const mainElem = mainElemRef.current;
-      if (!mainElem) {
-         return;
-      }
-      /*
-       * This is a hack to make sure we're never at exactly the top of the
-       * page. If you're at exactly the top, then browsers wont keep your
-       * position properly when you add content above you. So move down 1px.
-       */
-      mainElem.scrollTop = 1;
+   const onScrub = useCallback(
+      (idx: number) => {
+         /*
+          * This is a hack to make sure we're never at exactly the top of the
+          * page. If you're at exactly the top, then browsers wont keep your
+          * position properly when you add content above you. So move down 1px.
+          */
+         if (mainElem) {
+            mainElem.scrollTop = 1;
+         }
 
-      /* Update the blocks to start ot the scrub index and show at least 30 items */
-      let endIdx = idx;
-      let count = 0;
-      while (endIdx < props.blocks.length && count < 30) {
-         count += props.blocks[endIdx].count;
-         endIdx++;
-      }
-      setBlockRange({ start: idx, end: endIdx });
-   };
+         /* Update the blocks to start ot the scrub index and show at least 30 items */
+         let endIdx = idx;
+         let count = 0;
+         while (endIdx < props.blocks.length && count < 30) {
+            count += props.blocks[endIdx].count;
+            endIdx++;
+         }
+         setBlockRange({ start: idx, end: endIdx });
+      },
+      [mainElem, props.blocks]
+   );
 
    /* Helper function for checking if another block can be added to the bottom */
    const canPushBlock = (container: HTMLDivElement, blocks: MediaBlock[], blockRange: DisplayRange) => {
@@ -88,7 +90,6 @@ export const Gallery = (props: GalleryProps) => {
    /* Get the block that is currently visible on screen */
    useEffect(() => {
       const isElementInView = (elem: HTMLElement | null) => {
-         const mainElem = mainElemRef.current;
          if (!mainElem || !elem) {
             return false;
          }
@@ -104,13 +105,12 @@ export const Gallery = (props: GalleryProps) => {
             break;
          }
       }
-   }, [scrollPosition, blockRange]);
+   }, [scrollPosition, blockRange, mainElem]);
 
    /* Update the blocks displayed on screen depending on the scroll position */
    useThrottleFn(
       useCallback(() => {
          let { start, end } = blockRange;
-         const mainElem = mainElemRef.current;
          if (isScrubbing || !mainElem || props.blocks.length === 0) {
             return;
          }
@@ -144,25 +144,24 @@ export const Gallery = (props: GalleryProps) => {
          if (start !== blockRange.start || end !== blockRange.end) {
             setBlockRange({ start, end });
          }
-      }, [blockRange, isScrubbing, props.blocks]),
+      }, [blockRange, isScrubbing, props.blocks, mainElem]),
       100,
       scrollPosition
    );
 
    /* Set the onscroll event handler for the main section */
    useEffect(() => {
-      const elem = mainElemRef.current;
-      if (elem) {
-         elem.onscroll = () => {
+      if (mainElem) {
+         mainElem.onscroll = () => {
             if (mainElemRef.current) {
                setScrollPosition(mainElemRef.current.scrollTop);
             }
          };
          return () => {
-            elem.onscroll = null;
+            mainElem.onscroll = null;
          };
       }
-   }, []);
+   }, [mainElem]);
 
    return (
       <main className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar" ref={mainElemRef}>
