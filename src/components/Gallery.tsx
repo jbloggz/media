@@ -153,9 +153,7 @@ export const Gallery = (props: GalleryProps) => {
    useEffect(() => {
       if (mainElem) {
          mainElem.onscroll = () => {
-            if (mainElemRef.current) {
-               setScrollPosition(mainElemRef.current.scrollTop);
-            }
+            setScrollPosition(mainElem.scrollTop);
          };
          return () => {
             mainElem.onscroll = null;
