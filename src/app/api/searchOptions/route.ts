@@ -16,8 +16,8 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json({ message: `Invalid field: ${field}` }, { status: 400 });
    }
    try {
-      const result = await db.query({text: `SELECT DISTINCT ${field} AS option FROM media`, rowMode: 'array'})
-      return NextResponse.json(result.rows.map(v => v.join(' ')));
+      const result = await db.query({ text: `SELECT DISTINCT ${field} AS option FROM media`, rowMode: 'array' });
+      return NextResponse.json(result.rows.map((v) => v.join(' ')));
    } catch (e) {
       return NextResponse.json({ message: 'Database query failed' }, { status: 500 });
    }

@@ -36,7 +36,6 @@ export const GET = async (request: NextRequest) => {
 
    try {
       const ids = (await db.query(idQuery, bindings)).rows[0];
-
       if (!ids) {
          return NextResponse.json({ message: 'Cannot find media' }, { status: 404 });
       }
