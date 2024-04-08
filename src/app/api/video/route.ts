@@ -10,34 +10,10 @@ import fs from 'fs';
 import { basename } from 'path';
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import parseRange, { Range, Ranges } from 'range-parser';
+import parseRange from 'range-parser';
 import mime from 'mime';
 import db from '@/database';
-
-async function* nodeStreamToIterator(stream: fs.ReadStream) {
-   for await (const chunk of stream) {
-      yield chunk;
-   }
-}
-
-const iteratorToStream = (iterator: AsyncGenerator<Uint8Array>): ReadableStream => {
-   return new ReadableStream({
-      async pull(controller) {
-         const { value, done } = await iterator.next();
-
-         if (done) {
-            controller.close();
-         } else {
-            controller.enqueue(new Uint8Array(value));
-         }
-      },
-   });
-};
-
-const streamFile = (path: string, range?: Range) => {
-   const fsStream = fs.createReadStream(path, range && { ...range });
-   return iteratorToStream(nodeStreamToIterator(fsStream));
-};
+import { streamFile } from './streamFile';
 
 export const GET = async (request: NextRequest) => {
    const searchParams = request.nextUrl.searchParams;
@@ -83,6 +59,6 @@ export const GET = async (request: NextRequest) => {
 
       return new NextResponse(stream, { status: range ? 206 : 200, headers });
    } catch (e) {
-      return NextResponse.json({ message: 'Cannot find thumbnail' }, { status: 404 });
+      return NextResponse.json({ message: 'Cannot find video' }, { status: 404 });
    }
 };
