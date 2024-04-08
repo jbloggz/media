@@ -15,6 +15,7 @@ import * as GoogleMaps from '@vis.gl/react-google-maps';
 import * as reactSelect from 'react-select';
 import { PropsWithChildren } from 'react';
 import { Circle, initialize as initializeGoogleMapsMocks } from '@googlemaps/jest-mocks';
+import { NextResponse } from 'next/server';
 
 fetchMock.enableMocks();
 
@@ -72,6 +73,13 @@ beforeEach(() => {
       return circle;
    });
 });
+
+/* This is required for NextResponse to work */
+NextResponse.json = jest.fn().mockImplementation((body, opts) => ({
+   status: opts?.status ?? 200,
+   body,
+   headers: opts?.headers,
+}));
 
 /* Make sure mock are always reset before each test */
 beforeEach(() => {
