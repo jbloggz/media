@@ -39,7 +39,13 @@ const mockNextRouter = {
    replace: jest.fn(),
    prefetch: jest.fn(),
 };
+const mockUseSearchParams = {
+   get: jest.fn(),
+} as unknown as nextNavigation.ReadonlyURLSearchParams;
+const mockRedirect = jest.fn() as unknown as (url: string) => never;
 jest.spyOn(nextNavigation, 'useRouter').mockImplementation(() => mockNextRouter);
+jest.spyOn(nextNavigation, 'useSearchParams').mockImplementation(() => mockUseSearchParams);
+jest.spyOn(nextNavigation, 'redirect').mockImplementation(mockRedirect);
 
 /* Mocks for react-toastify */
 jest.mock('react-toastify');
@@ -108,6 +114,8 @@ const mocks = {
    },
    nextNavigation: {
       router: mockNextRouter,
+      useSearchParams: mockUseSearchParams,
+      redirect: mockRedirect,
    },
    reactToastify: {
       toast: mockToast,
