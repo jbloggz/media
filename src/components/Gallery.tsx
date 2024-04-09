@@ -38,7 +38,6 @@ export const Gallery = (props: GalleryProps) => {
    const [isScrubbing, setIsScrubbing] = useState(false);
    const [selectedImage, setSelectedImage] = useState<number | null>(null);
    const router = useHashRouter((v) => !v && setSelectedImage(null));
-   const mainElem = mainElemRef.current;
 
    /* Called when the user is scrubbing */
    const onScrub = useCallback(
@@ -48,8 +47,8 @@ export const Gallery = (props: GalleryProps) => {
           * page. If you're at exactly the top, then browsers wont keep your
           * position properly when you add content above you. So move down 1px.
           */
-         if (mainElem) {
-            mainElem.scrollTop = 1;
+         if (mainElemRef.current) {
+            mainElemRef.current.scrollTop = 1;
          }
 
          /* Update the blocks to start ot the scrub index and show at least 30 items */
@@ -61,7 +60,7 @@ export const Gallery = (props: GalleryProps) => {
          }
          setBlockRange({ start: idx, end: endIdx });
       },
-      [mainElem, props.blocks]
+      [props.blocks]
    );
 
    /* Helper function for checking if another block can be added to the bottom */
@@ -90,11 +89,11 @@ export const Gallery = (props: GalleryProps) => {
    /* Get the block that is currently visible on screen */
    useEffect(() => {
       const isElementInView = (elem: HTMLElement | null) => {
-         if (!mainElem || !elem) {
+         if (!mainElemRef.current || !elem) {
             return false;
          }
          const elemRect = elem.getBoundingClientRect();
-         const mainRect = mainElem.getBoundingClientRect();
+         const mainRect = mainElemRef.current.getBoundingClientRect();
          const mainRectMiddle = (mainRect.bottom - mainRect.top) / 2;
          return elemRect.top >= mainRect.top || (elemRect.top < mainRectMiddle && elemRect.bottom > mainRectMiddle);
       };
@@ -105,13 +104,13 @@ export const Gallery = (props: GalleryProps) => {
             break;
          }
       }
-   }, [scrollPosition, blockRange, mainElem]);
+   }, [scrollPosition, blockRange]);
 
    /* Update the blocks displayed on screen depending on the scroll position */
    useThrottleFn(
       useCallback(() => {
          let { start, end } = blockRange;
-         if (isScrubbing || !mainElem || props.blocks.length === 0) {
+         if (isScrubbing || !mainElemRef.current || props.blocks.length === 0) {
             return;
          }
 
@@ -120,20 +119,20 @@ export const Gallery = (props: GalleryProps) => {
           * page. If you're at exactly the top, then browsers wont keep your
           * position properly when you add content above you. So move down 1px.
           */
-         if (mainElem.scrollTop === 0) {
-            mainElem.scrollTop = 1;
+         if (mainElemRef.current.scrollTop === 0) {
+            mainElemRef.current.scrollTop = 1;
          }
 
-         if (canPushBlock(mainElem, props.blocks, blockRange)) {
+         if (canPushBlock(mainElemRef.current, props.blocks, blockRange)) {
             /* We are too close to the bottom, so add a block to the bottom */
             end += 1;
-         } else if (canPopBlock(mainElem, end - 1)) {
+         } else if (canPopBlock(mainElemRef.current, end - 1)) {
             /* We are far enough away from the last block that we can remove it */
             end -= 1;
          } else if (canShiftBlock(start)) {
             /* We are far enough away from the first block that we can remove it */
             start += 1;
-         } else if (canUnshiftBlock(mainElem, blockRange)) {
+         } else if (canUnshiftBlock(mainElemRef.current, blockRange)) {
             /* We are too close to the top, so add a block to the top */
             start -= 1;
          }
@@ -144,25 +143,17 @@ export const Gallery = (props: GalleryProps) => {
          if (start !== blockRange.start || end !== blockRange.end) {
             setBlockRange({ start, end });
          }
-      }, [blockRange, isScrubbing, props.blocks, mainElem]),
+      }, [blockRange, isScrubbing, props.blocks]),
       100,
       scrollPosition
    );
 
-   /* Set the onscroll event handler for the main section */
-   useEffect(() => {
-      if (mainElem) {
-         mainElem.onscroll = () => {
-            setScrollPosition(mainElem.scrollTop);
-         };
-         return () => {
-            mainElem.onscroll = null;
-         };
-      }
-   }, [mainElem]);
-
    return (
-      <main className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar" ref={mainElemRef}>
+      <main
+         className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar"
+         ref={mainElemRef}
+         onScroll={(e) => setScrollPosition(e.currentTarget.scrollTop)}
+      >
          {props.blocks.slice(blockRange.start, blockRange.end).map((block, idx) => (
             <ThumbnailBlock
                key={block.day}
