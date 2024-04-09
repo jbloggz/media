@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation';
 
 const LoginLayout = async ({ children }: { children: React.ReactNode }) => {
    if (process.env.NEXTAUTH_PROVIDER !== 'google') {
-      redirect('/api/auth/signin');
+      return redirect('/api/auth/signin');
    }
 
    return <>{children}</>;
