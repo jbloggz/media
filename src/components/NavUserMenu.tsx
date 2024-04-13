@@ -8,26 +8,36 @@
 'use client';
 
 import { signOut } from 'next-auth/react';
+import { useToggle } from '@/hooks';
+import { AboutDialog } from '.';
 
 export const NavUserMenu = (props: { email: string }) => {
+   const about = useToggle();
+
    return (
-      <div className="dropdown dropdown-bottom dropdown-end">
-         <button tabIndex={0} className="btn m-1 btn-circle btn-ghost">
-            <div className="avatar placeholder">
-               <div className="bg-neutral text-neutral-content rounded-full w-8">
-                  <span className="text-md">{props.email.substring(0, 1).toUpperCase()}</span>
+      <>
+         <div className="dropdown dropdown-bottom dropdown-end">
+            <button tabIndex={0} className="btn m-1 btn-circle btn-ghost">
+               <div className="avatar placeholder">
+                  <div className="bg-neutral text-neutral-content rounded-full w-8">
+                     <span className="text-md">{props.email.substring(0, 1).toUpperCase()}</span>
+                  </div>
                </div>
-            </div>
-         </button>
-         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box">
-            <li className="!cursor-default disabled">
-               <a>{props.email}</a>
-               <div className="divider m-0 p-0 mt-2"></div>
-            </li>
-            <li>
-               <a onClick={() => signOut()}>Logout</a>
-            </li>
-         </ul>
-      </div>
+            </button>
+            <ul onClick={(e) => e.currentTarget.blur()} tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box">
+               <li className="!cursor-default disabled active:disabled">
+                  <span>{props.email}</span>
+               </li>
+               <li>
+                  <a onClick={about.show}>About</a>
+               </li>
+               <div className="divider m-0 p-0 my-2"></div>
+               <li>
+                  <a onClick={() => signOut()}>Logout</a>
+               </li>
+            </ul>
+         </div>
+         <AboutDialog show={about.enabled} onClose={about.hide} />
+      </>
    );
 };

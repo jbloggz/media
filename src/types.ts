@@ -137,3 +137,12 @@ interface APIMedia {
    /* The next media entry */
    next?: Media;
 }
+
+/* The API response for the app version */
+interface Version {
+   /* The version number */
+   version: string;
+
+   /* The last commit time */
+   timestamp: number;
+}

@@ -6,6 +6,7 @@
  * Barrel file for components
  */
 
+export * from './AboutDialog';
 export * from './AppDrawer';
 export * from './Gallery';
 export * from './ImageSkeleton';
