@@ -12,3 +12,4 @@ export * from './useIntervalFn';
 export * from './useSearchAPI';
 export * from './useThrottleFn';
 export * from './useTimeoutFn';
+export * from './useToggle';
