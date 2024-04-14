@@ -8,7 +8,7 @@
 'use client';
 
 import { basename } from 'path';
-import { TransitionEventHandler } from 'react';
+import { ForwardedRef, TransitionEventHandler, forwardRef } from 'react';
 import Image from 'next/image';
 import { Loader } from '.';
 
@@ -20,13 +20,14 @@ interface MediaItemProps {
    isCurrent?: boolean;
 }
 
-export const MediaItem = (props: MediaItemProps) => {
+export const MediaItem = forwardRef<HTMLElement, MediaItemProps>(function MediaItem(props, ref) {
    return !props.media ? (
       <Loader isLoading={props.isCurrent ? true : false} />
    ) : props.media.type === 'image' ? (
       <>
          <Loader isLoading={props.isCurrent ? true : false} />
          <Image
+            ref={ref as ForwardedRef<HTMLImageElement>}
             key={props.media.id}
             className={`object-contain ${props.className}`}
             src={`/api/image?id=${props.media.id}`}
@@ -40,6 +41,7 @@ export const MediaItem = (props: MediaItemProps) => {
       </>
    ) : (
       <video
+         ref={ref as ForwardedRef<HTMLVideoElement>}
          key={props.media.id}
          className={`absolute w-full h-full inset-0 ${props.className}`}
          autoPlay={props.isCurrent}
@@ -51,4 +53,4 @@ export const MediaItem = (props: MediaItemProps) => {
          <source src={`/api/video?id=${props.media.id}`} />
       </video>
    );
-};
+});

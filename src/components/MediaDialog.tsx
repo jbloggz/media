@@ -7,7 +7,7 @@
  */
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSwipeable, LEFT, RIGHT, DOWN, SwipeDirections, UP } from 'react-swipeable';
 import { ArrowDownTrayIcon, ArrowUturnLeftIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useSearchAPI } from '@/hooks';
@@ -16,7 +16,7 @@ import { MediaCarousel, MediaInformation } from '.';
 interface MediaDialogProps {
    id: number;
    onClose: () => void;
-   onChange:(id: number) => void;
+   onChange: (id: number) => void;
 }
 
 const isTouchEnabled = () => {
@@ -36,16 +36,32 @@ export const MediaDialog = (props: MediaDialogProps) => {
    const [showControls, setShowControls] = useState(false);
    const [showInfo, setShowInfo] = useState(false);
    const api = useSearchAPI<APIMedia>({ url: '/api/media', params: { id: state.id } });
+   const mediaRef = useRef<HTMLElement>(null);
+   const [swipeEnabled, setSwipeEnabled] = useState(true);
 
    const onClose = useCallback(() => {
       props.onClose();
    }, [props]);
 
+   const isMediaZoomedOut = () => {
+      return !!(window.visualViewport?.width && mediaRef.current?.clientWidth && window.visualViewport?.width / mediaRef.current?.clientWidth >= 0.9);
+   };
+
    const onSwipe = useCallback(
-      (dir: SwipeDirections) => {
-         setState({ ...state, swipeDir: dir });
+      (dir: SwipeDirections, force: boolean = false) => {
+         if (!force && (!isMediaZoomedOut() || !swipeEnabled)) {
+            /* We are not allowed to do swipe actions at the moment */
+            return;
+         }
+         setSwipeEnabled(true);
+
+         if (dir == DOWN) {
+            onClose();
+         } else {
+            setState({ ...state, swipeDir: dir });
+         }
       },
-      [state]
+      [state, onClose, swipeEnabled]
    );
 
    useEffect(() => {
@@ -67,9 +83,9 @@ export const MediaDialog = (props: MediaDialogProps) => {
          if (event.key === 'Escape') {
             onClose();
          } else if (event.key === 'ArrowLeft') {
-            onSwipe(RIGHT);
+            onSwipe(RIGHT, true);
          } else if (event.key === 'ArrowRight') {
-            onSwipe(LEFT);
+            onSwipe(LEFT, true);
          }
       };
 
@@ -91,29 +107,32 @@ export const MediaDialog = (props: MediaDialogProps) => {
       [state, props]
    );
 
-   const onSwipeComplete = useCallback((dir?: SwipeDirections) => {
-      switch (dir) {
-         case RIGHT:
-            gotoMedia(state.prev);
-            break;
+   const onSwipeComplete = useCallback(
+      (dir?: SwipeDirections) => {
+         switch (dir) {
+            case RIGHT:
+               gotoMedia(state.prev);
+               break;
 
-         case LEFT:
-            gotoMedia(state.next);
-            break;
+            case LEFT:
+               gotoMedia(state.next);
+               break;
 
-         case UP:
-            setShowInfo(true);
-            setState({ ...state, swipeDir: undefined });
-            break;
-      }
-   }, [state, gotoMedia]);
+            case UP:
+               setShowInfo(true);
+               setState({ ...state, swipeDir: undefined });
+               break;
+         }
+      },
+      [state, gotoMedia]
+   );
 
    const handlers = useSwipeable({
       onSwiped: (e) => {
          if (!showInfo) {
             switch (e.dir) {
                case DOWN:
-                  onClose();
+                  onSwipe(e.dir);
                   break;
 
                case UP:
@@ -125,6 +144,9 @@ export const MediaDialog = (props: MediaDialogProps) => {
                   break;
             }
          }
+      },
+      onSwiping: () => {
+         setSwipeEnabled(isMediaZoomedOut());
       },
    });
 
@@ -141,6 +163,7 @@ export const MediaDialog = (props: MediaDialogProps) => {
                <MediaInformation media={state.current} />
             ) : (
                <MediaCarousel
+                  ref={mediaRef}
                   state={state}
                   showControls={showControls}
                   onClick={() => setShowControls(!showControls)}

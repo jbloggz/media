@@ -6,6 +6,7 @@
  * The Gallery Image Viewer Carousel
  */
 
+import { forwardRef } from 'react';
 import { LEFT, RIGHT, SwipeDirections, UP } from 'react-swipeable';
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { MediaState } from './MediaDialog';
@@ -15,11 +16,11 @@ interface MediaCarouselProps {
    state: MediaState;
    showControls: boolean;
    onClick: () => void;
-   onSwipe: (dir: SwipeDirections) => void;
+   onSwipe: (dir: SwipeDirections, force: boolean) => void;
    onTransitionEnd: () => void;
 }
 
-export const MediaCarousel = (props: MediaCarouselProps) => {
+export const MediaCarousel = forwardRef<HTMLElement, MediaCarouselProps>(function MediaCarousel(props, ref) {
    return (
       <>
          {props.state.prev && (
@@ -38,6 +39,7 @@ export const MediaCarousel = (props: MediaCarouselProps) => {
 
          {props.state.id && (
             <MediaItem
+               ref={ref}
                className={
                   props.state.swipeDir === RIGHT && props.state.prev
                      ? 'translate-x-full transition-transform'
@@ -57,13 +59,13 @@ export const MediaCarousel = (props: MediaCarouselProps) => {
          {props.showControls && (
             <>
                {props.state.prev && (
-                  <button className="btn btn-circle opacity-80 fixed top-1/2 left-10 " onClick={() => props.onSwipe(RIGHT)}>
+                  <button className="btn btn-circle opacity-80 fixed top-1/2 left-10 " onClick={() => props.onSwipe(RIGHT, true)}>
                      <ArrowLeftIcon className="h-6 w-6" />
                   </button>
                )}
 
                {props.state.next && (
-                  <button className="btn btn-circle opacity-80 fixed top-1/2 right-10 " onClick={() => props.onSwipe(LEFT)}>
+                  <button className="btn btn-circle opacity-80 fixed top-1/2 right-10 " onClick={() => props.onSwipe(LEFT, true)}>
                      <ArrowRightIcon className="h-6 w-6" />
                   </button>
                )}
@@ -71,4 +73,4 @@ export const MediaCarousel = (props: MediaCarouselProps) => {
          )}
       </>
    );
-};
+});

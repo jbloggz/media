@@ -28,7 +28,7 @@ describe('MediaCarousel', () => {
       const component = render(
          <MediaCarousel state={state} showControls={true} onClick={jest.fn()} onSwipe={jest.fn()} onTransitionEnd={jest.fn()} />
       );
-      expect(MediaItem as jest.Mock).toHaveBeenCalledTimes(3);
+      expect(MediaItem as unknown as jest.Mock).toHaveBeenCalledTimes(3);
       expect(component.getAllByRole('button')).toHaveLength(2);
    });
 
@@ -43,7 +43,7 @@ describe('MediaCarousel', () => {
       const component = render(
          <MediaCarousel state={state} showControls={false} onClick={jest.fn()} onSwipe={jest.fn()} onTransitionEnd={jest.fn()} />
       );
-      expect(MediaItem as jest.Mock).toHaveBeenCalledTimes(3);
+      expect(MediaItem as unknown as jest.Mock).toHaveBeenCalledTimes(3);
       expect(component.queryAllByRole('button')).toHaveLength(0);
    });
 
@@ -57,7 +57,7 @@ describe('MediaCarousel', () => {
       const component = render(
          <MediaCarousel state={state} showControls={true} onClick={jest.fn()} onSwipe={jest.fn()} onTransitionEnd={jest.fn()} />
       );
-      expect(MediaItem as jest.Mock).toHaveBeenCalledTimes(2);
+      expect(MediaItem as unknown as jest.Mock).toHaveBeenCalledTimes(2);
       expect(component.queryAllByRole('button')).toHaveLength(1);
    });
 
@@ -70,7 +70,7 @@ describe('MediaCarousel', () => {
       const component = render(
          <MediaCarousel state={state} showControls={true} onClick={jest.fn()} onSwipe={jest.fn()} onTransitionEnd={jest.fn()} />
       );
-      expect(MediaItem as jest.Mock).toHaveBeenCalledTimes(2);
+      expect(MediaItem as unknown as jest.Mock).toHaveBeenCalledTimes(2);
       expect(component.queryAllByRole('button')).toHaveLength(1);
    });
 
@@ -84,7 +84,7 @@ describe('MediaCarousel', () => {
       const component = render(<MediaCarousel state={state} showControls={true} onClick={jest.fn()} onSwipe={onSwipe} onTransitionEnd={jest.fn()} />);
       const btn = component.container.querySelector('button');
       btn?.click();
-      expect(onSwipe).toHaveBeenCalledWith(LEFT);
+      expect(onSwipe).toHaveBeenCalledWith(LEFT, true);
    });
 
    it('should call onSwipe(RIGHT) if prev button is clicked', () => {
@@ -97,6 +97,6 @@ describe('MediaCarousel', () => {
       const component = render(<MediaCarousel state={state} showControls={true} onClick={jest.fn()} onSwipe={onSwipe} onTransitionEnd={jest.fn()} />);
       const btn = component.container.querySelector('button');
       btn?.click();
-      expect(onSwipe).toHaveBeenCalledWith(RIGHT);
+      expect(onSwipe).toHaveBeenCalledWith(RIGHT, true);
    });
 });

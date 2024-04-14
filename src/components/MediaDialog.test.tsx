@@ -13,13 +13,26 @@ import { MediaDialog } from '.';
 import * as useSearchAPI from '../hooks/useSearchAPI';
 import { MediaCarousel } from './MediaCarousel';
 import { useSwipeable } from 'react-swipeable';
+import { ForwardedRef } from 'react';
 
 /* Mock out dependencies */
 jest.mock('../hooks/useSearchAPI');
 const mockUseSeachAPI = jest.spyOn(useSearchAPI, 'useSearchAPI');
-jest.mock('./MediaCarousel', () => ({
-   MediaCarousel: jest.fn().mockReturnValue(<div data-testid="MediaCarousel"></div>),
-}));
+
+const MockMediaCarousel = jest
+   .fn()
+   .mockImplementation((props, ref) => (
+      <div ref={ref} style={{ width: '200px' }} data-block={JSON.stringify(props.block)} data-testid="MediaCarousel"></div>
+   ));
+jest.mock('./MediaCarousel', () => {
+   const { forwardRef } = jest.requireActual('react');
+   return {
+      MediaCarousel: forwardRef(function MediaCarousel(props: any, ref: ForwardedRef<HTMLElement>) {
+         return MockMediaCarousel(props, ref);
+      }),
+   };
+});
+
 jest.mock('./MediaInformation', () => ({
    MediaInformation: jest.fn().mockReturnValue(<div data-testid="MediaInformation"></div>),
 }));
@@ -29,6 +42,14 @@ jest.mock('react-swipeable', () => ({
 }));
 
 describe('MediaDialog', () => {
+   beforeAll(() => {
+      Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 100 });
+   });
+
+   beforeEach(() => {
+      global.visualViewport = { width: 100 } as VisualViewport;
+   });
+
    it('should render a MediaCarousel by default', () => {
       mockUseSeachAPI.mockReturnValue({ isLoading: false, data: { current: { id: 123 } }, error: undefined, mutate: jest.fn(), isValidating: false });
       const component = render(<MediaDialog id={123} onClose={jest.fn()} onChange={jest.fn()} />);
@@ -48,7 +69,7 @@ describe('MediaDialog', () => {
 
       /* Simulate a click on the carousel to show the controls */
       act(() => {
-         (MediaCarousel as jest.Mock).mock.calls[0][0].onClick();
+         MockMediaCarousel.mock.calls[0][0].onClick();
       });
 
       /* Simulate a click on the info button to show the MediaInformation */
@@ -100,7 +121,7 @@ describe('MediaDialog', () => {
 
       /* Simulate a click on the carousel to show the controls */
       act(() => {
-         (MediaCarousel as jest.Mock).mock.calls[0][0].onClick();
+         MockMediaCarousel.mock.calls[0][0].onClick();
       });
 
       const closeButton = component.getAllByRole('button', { hidden: true })[1];
@@ -125,10 +146,10 @@ describe('MediaDialog', () => {
 
       /* Simulate a swipe right */
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onSwipe('Right');
+         MockMediaCarousel.mock.lastCall[0].onSwipe('Right', true);
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 234 } }));
@@ -147,10 +168,10 @@ describe('MediaDialog', () => {
 
       /* Simulate a swipe left */
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onSwipe('Left');
+         MockMediaCarousel.mock.lastCall[0].onSwipe('Left', true);
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 456 } }));
@@ -173,10 +194,35 @@ describe('MediaDialog', () => {
          onSwiped({ dir: 'Left' });
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 456 } }));
+   });
+
+   it('should not go to next media when react-swipeable swipes left when zoomed in', () => {
+      const mockOnClose = jest.fn();
+      mockUseSeachAPI.mockReturnValue({
+         isLoading: false,
+         data: { id: 123, current: { id: 123 }, prev: { id: 234 }, next: { id: 456 } },
+         error: undefined,
+         mutate: jest.fn(),
+         isValidating: false,
+      });
+      render(<MediaDialog id={123} onClose={mockOnClose} onChange={jest.fn()} />);
+
+      global.visualViewport = { width: 50 } as VisualViewport;
+      const swiper = (useSwipeable as jest.Mock).mock.lastCall?.[0];
+      /* Simulate a swipe left */
+      act(() => {
+         swiper.onSwiping();
+         swiper.onSwiped({ dir: 'Left' });
+      });
+      act(() => {
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
+      });
+
+      expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 123 } }));
    });
 
    it('should go to prev media when react-swipeable swipes right', () => {
@@ -196,7 +242,7 @@ describe('MediaDialog', () => {
          onSwiped({ dir: 'Right' });
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 234 } }));
@@ -219,7 +265,7 @@ describe('MediaDialog', () => {
          onSwiped({ dir: 'Up' });
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(component.getByTestId('MediaInformation')).toBeInTheDocument();
@@ -259,10 +305,10 @@ describe('MediaDialog', () => {
 
       /* Simulate a swipe left */
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onSwipe('Left');
+         MockMediaCarousel.mock.lastCall[0].onSwipe('Left');
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 123 } }));
@@ -281,10 +327,10 @@ describe('MediaDialog', () => {
 
       /* Simulate a swipe left */
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onSwipe('Right');
+         MockMediaCarousel.mock.lastCall[0].onSwipe('Right');
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 123 } }));
@@ -303,10 +349,10 @@ describe('MediaDialog', () => {
 
       /* Simulate a swipe up */
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onSwipe('Up');
+         MockMediaCarousel.mock.lastCall[0].onSwipe('Up', true);
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(component.getByTestId('MediaInformation')).toBeInTheDocument();
@@ -329,7 +375,7 @@ describe('MediaDialog', () => {
          fireEvent.keyDown(component.container, { key: 'ArrowLeft', code: 'ArrowLeft' });
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 234 } }));
@@ -351,7 +397,7 @@ describe('MediaDialog', () => {
          fireEvent.keyDown(component.container, { key: 'ArrowRight', code: 'ArrowRight' });
       });
       act(() => {
-         (MediaCarousel as jest.Mock).mock.lastCall[0].onTransitionEnd();
+         MockMediaCarousel.mock.lastCall[0].onTransitionEnd();
       });
 
       expect(mockUseSeachAPI.mock.lastCall?.[0]).toEqual(expect.objectContaining({ params: { id: 456 } }));
