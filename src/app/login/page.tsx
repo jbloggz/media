@@ -25,7 +25,7 @@ const GoogleLogin = () => {
 
    return (
       <main className="h-screen flex justify-center items-center">
-         <div className="card bg-neutral-900 rounded-3xl p-5 flex flex-col items-center">
+         <div className={`card ${isLoading || 'bg-neutral-900 p-5'} rounded-3xl flex flex-col items-center`}>
             <Loader error={error} isLoading={isLoading} showOnError>
                <Image className="m-2" src="/favicon-192x192.png" width={64} height={64} alt="media" />
                <button
