@@ -57,8 +57,8 @@ class FileMetadata(BaseModel):
     width: int = 0                  # Width in pixels
     height: int = 0                 # Height in pixels
     duration: int | None = None     # Duration in milliseconds (for videos)
-    latitude: int | None = None     # Latitude in degrees (-90 -> 90)
-    longitude: int | None = None    # Longitude in degrees (-180 -> 180)
+    latitude: float | None = None   # Latitude in degrees (-90 -> 90)
+    longitude: float | None = None  # Longitude in degrees (-180 -> 180)
     make: str | None = None         # Make of the device that created the file
     model: str | None = None        # Model of the device that created the file
     sha256: str = ''                # SHA256 checksum of the file
@@ -168,7 +168,8 @@ class Progress:
         self.last_state = state
         message = data or {}
         message['state'] = state
-        message['ete'] = None if not message.get('processed') else message.get('duration', 0) / message.get('processed', 1) * message.get('total', 0)
+        message['ete'] = None if not message.get('processed') else message.get(
+            'duration', 0) / message.get('processed', 1) * (message.get('total', 0) - message.get('processed', 0))
         self.db.execute('INSERT INTO progress VALUES (%(name)s, %(msg)s) ON CONFLICT (name) DO UPDATE SET message = %(msg)s', {
             'name': 'index',
             'msg': json.dumps(message)
@@ -629,8 +630,11 @@ def index_directory(args: argparse.Namespace, db: psycopg.Cursor, path: Path) ->
                 'duration': now - start_time
             })
 
-    with db.connection.transaction():
-        insert_media(db, processed)
+    if args.dry_run:
+        json.dump([f.model_dump(exclude=['thumbnail']) for f in processed], sys.stdout)
+    else:
+        with db.connection.transaction():
+            insert_media(db, processed)
 
     logger.info(f'Processed: {res.processed}, skipped: {res.skipped}, failed: {res.failed}')
     now = int(time.time())
@@ -700,6 +704,7 @@ def parse_args():  # pragma: no cover
     parser.add_argument('-l', '--log-file', type=str, help='Path to log file')
     parser.add_argument('-n', '--ncpu', type=int, default=2, help='Number of threads to run')
     parser.add_argument('-p', '--path', type=str, help='Process a path and exit')
+    parser.add_argument('-r', '--dry-run', action='store_true', help='Don\'t modify the database. Dump to stdout changes to make')
     parser.add_argument('-u', '--progress-update', type=int, default=3, help='Progress update interval')
     parser.add_argument('-U', '--log-progress', action='store_true', help='Log progress')
     parser.add_argument('-t', '--file-time', action='store_true', help='Force the use of the file timestamp')
