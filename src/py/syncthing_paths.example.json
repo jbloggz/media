@@ -1,0 +1,14 @@
+[
+  {
+    "src": "/home/foo/Sync/Camera",
+    "dst": "/media/foo/Media/Photos/Camera",
+    "glob": "*.jpg",
+    "exclude": null
+  },
+  {
+    "src": "/home/foo/Sync/Camera",
+    "dst": "/media/foo/Media/Videos/Camera",
+    "glob": "*.mp4",
+    "exclude": "\\.trashed-"
+  }
+]
