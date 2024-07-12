@@ -206,6 +206,21 @@ describe('SearchDialog', () => {
       );
    });
 
+   it('should update filter when path regex changes', () => {
+      const setFilter = jest.fn();
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const input = component.container.querySelector('input[name="path"]') as HTMLInputElement;
+      const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
+      act(() => {
+         fireEvent.change(input, { target: { value: '.*' } });
+      });
+      act(() => {
+         submitButton.click();
+      });
+
+      expect(setFilter).toHaveBeenCalledWith({ sizeMax: 1234, path: '.*' });
+   });
+
    it('should update filter when media type select changes', () => {
       const setFilter = jest.fn();
       const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);

@@ -12,6 +12,7 @@ import { searchParamsToSQL } from './database';
 describe('searchParamsToSQL', () => {
    it('should generate a valid SQL query and bindings when all parameters are present', () => {
       const params = new URLSearchParams();
+      params.set('path', '.*\\.jpg');
       params.set('type', 'type1');
       params.set('camera', 'camera1');
       params.set('durationMin', '10');
@@ -26,8 +27,8 @@ describe('searchParamsToSQL', () => {
       params.set('radius', '1000');
 
       const expectedQuery =
-         "type IN ($1) AND (make || ' ' || model) IN ($2) AND duration >= $3 AND duration <= $4 AND height >= $5 AND height <= $6 AND width >= $7 AND width <= $8 AND size >= $9 AND size <= $10 AND latitude BETWEEN 40.703802258433136 AND 40.72179774156687 AND longitude BETWEEN -74.01499774156687 AND -73.99700225843313";
-      const expectedBindings = ['type1', 'camera1', '10', '20', '100', '200', '50', '100', '500', '1000'];
+         "path ~ $1 AND type IN ($2) AND (make || ' ' || model) IN ($3) AND duration >= $4 AND duration <= $5 AND height >= $6 AND height <= $7 AND width >= $8 AND width <= $9 AND size >= $10 AND size <= $11 AND latitude BETWEEN 40.703802258433136 AND 40.72179774156687 AND longitude BETWEEN -74.01499774156687 AND -73.99700225843313";
+      const expectedBindings = ['.*\\.jpg', 'type1', 'camera1', '10', '20', '100', '200', '50', '100', '500', '1000'];
 
       const [query, bindings] = searchParamsToSQL(params);
 

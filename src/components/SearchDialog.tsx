@@ -115,6 +115,22 @@ export const SearchDialog = (props: SearchDialogProps) => {
                   </div>
 
                   <div className={`${activeTab === 'general' ? 'block' : 'hidden'} flex-grow`}>
+                     <label className="form-control w-full">
+                        <div className="label">
+                           <span className="label-text">Path</span>
+                        </div>
+                        <div className="flex w-full">
+                           <input
+                              name="path"
+                              type="text"
+                              value={filter.path || ''}
+                              onChange={(e) => dispatchFilter({ path: e.target.value })}
+                              placeholder="Regular expression"
+                              className="input input-bordered max-w-xs"
+                           />
+                        </div>
+                     </label>
+
                      <div className="form-control w-full max-w-xs">
                         <div className="label">
                            <span className="label-text">Media Type</span>

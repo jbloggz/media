@@ -41,6 +41,9 @@ interface ThumbMeta {
 
 /* Search filters for the gallery */
 interface SearchFilter {
+   /* The path regex */
+   path?: string;
+
    /* The media type */
    type?: string[];
 

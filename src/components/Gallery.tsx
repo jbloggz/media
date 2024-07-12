@@ -159,7 +159,9 @@ export const Gallery = (props: GalleryProps) => {
                key={block.day}
                className={'pb-6'}
                block={block}
-               ref={(elem) => (blockRef.current[blockRange.start + idx] = elem)}
+               ref={(elem) => {
+                  blockRef.current[blockRange.start + idx] = elem;
+               }}
                onImageClick={(id) => {
                   router.push(`view:${id}`);
                   setSelectedImage(id);

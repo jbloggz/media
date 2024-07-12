@@ -15,7 +15,7 @@ export default db;
 /**
  * Convert SearchFilter URL parameters to a SQL filter clause
  *
- * @param params THe search filter parameters
+ * @param params The search filter parameters
  *
  * @returns The SQL query and the list of binded values
  */
@@ -23,6 +23,12 @@ export const searchParamsToSQL = (params: URLSearchParams): [string, (string | n
    const filters: string[] = [];
    const bindings: (string | number)[] = [];
    let idx = 1;
+
+   const path = params.get('path');
+   if (path) {
+      filters.push(`path ~ $${idx++}`);
+      bindings.push(path);
+   }
 
    const types = params.getAll('type');
    if (types.length > 0) {
