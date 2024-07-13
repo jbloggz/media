@@ -26,7 +26,7 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
    const session = await getServerSession();
    return (
       <html lang="en" data-theme="business">
-         <body className={inter.className}>
+         <body className={inter.className} style={{'overscrollBehavior': 'none'}}>
             {session?.user?.email ? (
                <AppDrawer>
                   <NavBar />
