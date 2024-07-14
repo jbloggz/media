@@ -55,7 +55,7 @@ describe('Scrubber', () => {
    });
 
    it('should handle a single block', () => {
-      const blocks: MediaBlock[] = [{ day: '2024-03-31', count: 10, total: 10 }];
+      const blocks: MediaBlock[] = [{ heading: '2024-03-31', count: 10, total: 10 }];
       const scrollPosition = 0;
       const currentBlock = 0;
       const onScrub = jest.fn();
@@ -78,10 +78,10 @@ describe('Scrubber', () => {
 
    it('should handle multiple blocks', () => {
       const blocks: MediaBlock[] = [
-         { day: '2024-04-17', count: 10, total: 10 },
-         { day: '2024-04-15', count: 5, total: 15 },
-         { day: '2024-04-12', count: 34, total: 49 },
-         { day: '2024-03-31', count: 21, total: 70 },
+         { heading: '2024-04-17', count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
       ];
       const scrollPosition = 0;
       const currentBlock = 0;
@@ -105,10 +105,10 @@ describe('Scrubber', () => {
 
    it('should scrub to the nearest node on drag', () => {
       const blocks: MediaBlock[] = [
-         { day: '2024-04-17', count: 10, total: 10 },
-         { day: '2024-04-15', count: 5, total: 15 },
-         { day: '2024-04-12', count: 34, total: 49 },
-         { day: '2024-03-31', count: 21, total: 70 },
+         { heading: '2024-04-17', count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
       ];
       const scrollPosition = 0;
       const currentBlock = 0;
@@ -143,10 +143,10 @@ describe('Scrubber', () => {
 
    it('should be no-op if scrubbed with no nodes defined', () => {
       const blocks: MediaBlock[] = [
-         { day: '2024-04-17', count: 10, total: 10 },
-         { day: '2024-04-15', count: 5, total: 15 },
-         { day: '2024-04-12', count: 34, total: 49 },
-         { day: '2024-03-31', count: 21, total: 70 },
+         { heading: '2024-04-17', count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
       ];
       const scrollPosition = 0;
       const currentBlock = 0;
@@ -180,10 +180,10 @@ describe('Scrubber', () => {
 
    it('should update slider position if within scrollbar', () => {
       const blocks: MediaBlock[] = [
-         { day: '2024-04-17', count: 10, total: 10 },
-         { day: '2024-04-15', count: 5, total: 15 },
-         { day: '2024-04-12', count: 34, total: 49 },
-         { day: '2024-03-31', count: 21, total: 70 },
+         { heading: '2024-04-17', count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
       ];
       const scrollPosition = 0;
       const currentBlock = 0;
@@ -218,10 +218,10 @@ describe('Scrubber', () => {
 
    it('should scrub to the last node if at the end', () => {
       const blocks: MediaBlock[] = [
-         { day: '2024-04-17', count: 10, total: 10 },
-         { day: '2024-04-15', count: 5, total: 15 },
-         { day: '2024-04-12', count: 34, total: 49 },
-         { day: '2024-03-31', count: 21, total: 70 },
+         { heading: '2024-04-17', count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
       ];
       const scrollPosition = 0;
       const currentBlock = 0;
@@ -256,10 +256,10 @@ describe('Scrubber', () => {
 
    it('should call onScrubStart/onScrubStop when starting/stopping drag', () => {
       const blocks: MediaBlock[] = [
-         { day: '2024-04-17', count: 10, total: 10 },
-         { day: '2024-04-15', count: 5, total: 15 },
-         { day: '2024-04-12', count: 34, total: 49 },
-         { day: '2024-03-31', count: 21, total: 70 },
+         { heading: '2024-04-17', count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
       ];
       const scrollPosition = 0;
       const currentBlock = 0;
@@ -302,10 +302,10 @@ describe('Scrubber', () => {
 
    it('should handle scrubber visibility', () => {
       const blocks: MediaBlock[] = [
-         { day: '2024-04-17', count: 10, total: 10 },
-         { day: '2024-04-15', count: 5, total: 15 },
-         { day: '2024-04-12', count: 34, total: 49 },
-         { day: '2024-03-31', count: 21, total: 70 },
+         { heading: '2024-04-17', count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
       ];
       const scrollPosition = 100;
       const currentBlock = 0;

@@ -17,14 +17,14 @@ export const GET = async (request: NextRequest) => {
       const result = await db.query(
          `
          WITH GroupedData AS (
-            SELECT TO_CHAR(TO_TIMESTAMP(timestamp) AT TIME ZONE '${process.env['TIMEZONE']}', 'YYYY-MM-DD') AS day, COUNT(*) AS count
+            SELECT TO_CHAR(TO_TIMESTAMP(timestamp) AT TIME ZONE '${process.env['TIMEZONE']}', 'YYYY-MM-DD') AS heading, COUNT(*) AS count
             FROM media
             ${filters !== '' ? `WHERE ${filters}` : ''}
-            GROUP BY day
+            GROUP BY heading
          )
-         SELECT day, CAST(count AS INTEGER), CAST(SUM(count) OVER (ORDER BY day DESC) AS INTEGER) AS total
+         SELECT heading, CAST(count AS INTEGER), CAST(SUM(count) OVER (ORDER BY heading DESC) AS INTEGER) AS total
          FROM GroupedData
-         ORDER BY day DESC
+         ORDER BY heading DESC
          `,
          bindings
       );

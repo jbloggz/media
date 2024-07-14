@@ -24,7 +24,7 @@ describe('ThumbnailBlock', () => {
    it('should render a div with the given className and ref', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
-      const block: MediaBlock = { day: '2024-03-27', count: 10, total: 83 };
+      const block: MediaBlock = { heading: '2024-03-27', count: 10, total: 83 };
 
       mockUseSeachAPI.mockReturnValue({ isLoading: false, data: [], error: undefined, mutate: jest.fn(), isValidating: false });
       const component = render(<ThumbnailBlock block={block} className={className} ref={ref} />);
@@ -36,7 +36,7 @@ describe('ThumbnailBlock', () => {
    it('should render the number of thumbnails in the props block count if the api is loading', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
-      const block: MediaBlock = { day: '2024-03-27', count: 10, total: 83 };
+      const block: MediaBlock = { heading: '2024-03-27', count: 10, total: 83 };
 
       mockUseSeachAPI.mockReturnValue({ isLoading: true, data: null, error: undefined, mutate: jest.fn(), isValidating: false });
       const component = render(<ThumbnailBlock block={block} className={className} ref={ref} />);
@@ -47,7 +47,7 @@ describe('ThumbnailBlock', () => {
    it('should render the thumbnails provided by the API', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
-      const block: MediaBlock = { day: '2024-03-27', count: 10, total: 83 };
+      const block: MediaBlock = { heading: '2024-03-27', count: 10, total: 83 };
 
       mockUseSeachAPI.mockReturnValue({
          isLoading: false,
@@ -67,7 +67,7 @@ describe('ThumbnailBlock', () => {
    it('should call toast on an API error', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
-      const block: MediaBlock = { day: '2024-03-27', count: 8, total: 83 };
+      const block: MediaBlock = { heading: '2024-03-27', count: 8, total: 83 };
 
       mockUseSeachAPI.mockReturnValue({
          isLoading: false,
@@ -84,7 +84,7 @@ describe('ThumbnailBlock', () => {
    it("should call toast with default message on an API error that doesn't have a message", () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
-      const block: MediaBlock = { day: '2024-03-27', count: 8, total: 83 };
+      const block: MediaBlock = { heading: '2024-03-27', count: 8, total: 83 };
 
       mockUseSeachAPI.mockReturnValue({
          isLoading: false,

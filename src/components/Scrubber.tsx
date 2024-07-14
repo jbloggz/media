@@ -32,8 +32,8 @@ interface ScrubberProps {
    onScrubStop: () => void;
 }
 
-const getNodeName = (day: string) => {
-   const dt = new Date(day);
+const getNodeName = (heading?: string) => {
+   const dt = heading ? new Date(heading) : new Date();
    return dt.toLocaleDateString('default', { month: 'short', year: 'numeric' });
 };
 
@@ -59,7 +59,7 @@ const buildNodes = (blocks: MediaBlock[]): [Node[], { [key: number]: number }] =
    for (const [idx, block] of blocks.entries()) {
       if (count > mediaPerNode) {
          nodes.push({
-            name: getNodeName(blocks[nodeIdx].day),
+            name: getNodeName(blocks[nodeIdx].heading),
             block: nodeIdx,
             position,
          });
@@ -73,7 +73,7 @@ const buildNodes = (blocks: MediaBlock[]): [Node[], { [key: number]: number }] =
 
    if (count > 0) {
       nodes.push({
-         name: getNodeName(blocks[blocks.length - 1].day),
+         name: getNodeName(blocks[blocks.length - 1].heading),
          block: nodeIdx,
          position,
       });
@@ -223,7 +223,7 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
       <div ref={scrollbarElemRef} className="fixed w-1 bg-gray-500 top-28 bottom-10 right-2 transition-opacity duration-1000 opacity-0 rounded">
          {nodes.map((node) => (
             <div
-               key={blocks[node.block]?.day}
+               key={blocks[node.block]?.heading}
                className="absolute w-1 h-1 bg-gray-700 rounded-full"
                style={{ top: `${node.position * scrubberHeight - 2}px` }}
             ></div>

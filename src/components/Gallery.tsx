@@ -27,6 +27,7 @@ interface DisplayRange {
 interface GalleryProps {
    /* The media blocks available */
    blocks: MediaBlock[];
+   scrubber?: boolean;
 }
 
 export const Gallery = (props: GalleryProps) => {
@@ -156,7 +157,7 @@ export const Gallery = (props: GalleryProps) => {
       >
          {props.blocks.slice(blockRange.start, blockRange.end).map((block, idx) => (
             <ThumbnailBlock
-               key={block.day}
+               key={block.heading}
                className={'pb-6'}
                block={block}
                ref={(elem) => {
@@ -168,14 +169,16 @@ export const Gallery = (props: GalleryProps) => {
                }}
             />
          ))}
-         <Scrubber
-            currentBlock={visibleBlock}
-            blocks={props.blocks}
-            scrollPosition={scrollPosition}
-            onScrub={onScrub}
-            onScrubStart={() => setIsScrubbing(true)}
-            onScrubStop={() => setIsScrubbing(false)}
-         />
+         {props.scrubber && (
+            <Scrubber
+               currentBlock={visibleBlock}
+               blocks={props.blocks}
+               scrollPosition={scrollPosition}
+               onScrub={onScrub}
+               onScrubStart={() => setIsScrubbing(true)}
+               onScrubStop={() => setIsScrubbing(false)}
+            />
+         )}
          {selectedImage && (
             <MediaDialog
                id={selectedImage}

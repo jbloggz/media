@@ -26,7 +26,7 @@ describe('api/thumbmeta', () => {
             searchParams: new URLSearchParams({
                durationMin: '10',
                durationMax: '20',
-               day: '2024-04-05',
+               heading: '2024-04-05',
             }),
          },
       };
@@ -46,7 +46,7 @@ describe('api/thumbmeta', () => {
       ]);
    });
 
-   it('should return a valid response when day not provided', async () => {
+   it('should return a valid response when heading not provided', async () => {
       const request = {
          nextUrl: {
             searchParams: new URLSearchParams({
@@ -71,11 +71,11 @@ describe('api/thumbmeta', () => {
       ]);
    });
 
-   it('should return a valid response when only day provided', async () => {
+   it('should return a valid response when only heading provided', async () => {
       const request = {
          nextUrl: {
             searchParams: new URLSearchParams({
-               day: '2023-12-12',
+               heading: '2023-12-12',
             }),
          },
       };

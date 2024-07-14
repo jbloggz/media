@@ -20,7 +20,7 @@ const Home = () => {
    return (
       <Loader {...api}>
          <SearchContext.Provider value={filter}>
-            <Gallery blocks={api.data || []} />
+            <Gallery blocks={api.data || []} scrubber />
          </SearchContext.Provider>
          <SearchDialog filter={filter} setFilter={setFilter} />
       </Loader>

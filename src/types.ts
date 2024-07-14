@@ -8,14 +8,17 @@
 
 /* A block of media items */
 interface MediaBlock {
-   /* The date for this block */
-   day: string;
+   /* The heading for this block */
+   heading?: string;
 
    /* The number of items in this block */
    count: number;
 
    /* The cumulative sum of the number of items */
    total: number;
+
+   /* The items in the block, if already retrieved */
+   items?: ThumbMeta[];
 }
 
 /* GPS coordinates */

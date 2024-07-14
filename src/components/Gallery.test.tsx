@@ -51,9 +51,9 @@ const getRenderedBlocks = (component: RenderResult) => getRenderedBlockElems(com
 describe('Gallery', () => {
    it('should initially render the main section with the first ThumbnailBlock', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -77,9 +77,9 @@ describe('Gallery', () => {
 
    it('should render the block that is scrubbed to', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -101,9 +101,9 @@ describe('Gallery', () => {
 
    it('should add block to the end if possible', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -119,9 +119,9 @@ describe('Gallery', () => {
 
    it('should remove a block from the end if possible', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -150,9 +150,9 @@ describe('Gallery', () => {
 
    it('should remove a block from the start if possible', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -181,9 +181,9 @@ describe('Gallery', () => {
 
    it('should add block to the start if possible', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -208,9 +208,9 @@ describe('Gallery', () => {
 
    it('should not add/remove blocks while scrubbing', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -229,9 +229,9 @@ describe('Gallery', () => {
 
    it('should set the correct visible block in the scrubber', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -261,9 +261,9 @@ describe('Gallery', () => {
 
    it('should set the select id in the MediaDialog when clicked in the Thumbnail block', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -278,9 +278,9 @@ describe('Gallery', () => {
 
    it('should close the mediadialog when the onclose is triggered', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
@@ -297,9 +297,9 @@ describe('Gallery', () => {
 
    it('should change the selected image when the MeidaDialog onChange handler is triggered', () => {
       const blocks: MediaBlock[] = [
-         { day: '2022-01-03', count: 5, total: 5 },
-         { day: '2022-01-02', count: 3, total: 8 },
-         { day: '2022-01-01', count: 7, total: 15 },
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
       const component = render(<Gallery blocks={blocks} />);
