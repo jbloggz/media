@@ -7,11 +7,10 @@
  */
 
 import '@testing-library/jest-dom';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import { MediaDialog } from '.';
 import * as useSearchAPI from '../hooks/useSearchAPI';
-import { MediaCarousel } from './MediaCarousel';
 import { useSwipeable } from 'react-swipeable';
 import { ForwardedRef } from 'react';
 

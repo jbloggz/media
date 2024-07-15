@@ -150,14 +150,15 @@ export const Gallery = (props: GalleryProps) => {
    );
 
    return (
-      <main
+      <div
+         role='grid'
          className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar"
          ref={mainElemRef}
          onScroll={(e) => setScrollPosition(e.currentTarget.scrollTop)}
       >
          {props.blocks.slice(blockRange.start, blockRange.end).map((block, idx) => (
             <ThumbnailBlock
-               key={block.heading}
+               key={block.heading || idx}
                className={'pb-6'}
                block={block}
                ref={(elem) => {
@@ -191,6 +192,6 @@ export const Gallery = (props: GalleryProps) => {
                }}
             />
          )}
-      </main>
+      </div>
    );
 };

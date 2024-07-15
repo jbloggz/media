@@ -9,7 +9,7 @@
 import assert from 'assert';
 import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 import mocks from '@/mocks';
 import { AppDrawer } from '.';
 

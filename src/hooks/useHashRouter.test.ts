@@ -9,7 +9,7 @@
 import '@testing-library/jest-dom';
 import { renderHook } from '@testing-library/react';
 import { useHashRouter } from '.';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 import mocks from '@/mocks';
 
 describe('useHashRouter', () => {

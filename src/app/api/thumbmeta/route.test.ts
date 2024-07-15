@@ -26,7 +26,7 @@ describe('api/thumbmeta', () => {
             searchParams: new URLSearchParams({
                durationMin: '10',
                durationMax: '20',
-               heading: '2024-04-05',
+               day: '2024-04-05',
             }),
          },
       };
@@ -75,7 +75,7 @@ describe('api/thumbmeta', () => {
       const request = {
          nextUrl: {
             searchParams: new URLSearchParams({
-               heading: '2023-12-12',
+               day: '2023-12-12',
             }),
          },
       };

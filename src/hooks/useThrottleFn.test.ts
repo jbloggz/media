@@ -9,7 +9,7 @@
 import '@testing-library/jest-dom';
 import { renderHook } from '@testing-library/react';
 import { useThrottleFn } from '.';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 import { useState } from 'react';
 
 describe('useThrottleFn', () => {

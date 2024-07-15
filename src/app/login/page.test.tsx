@@ -10,7 +10,7 @@ import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
 import Login from './page';
 import mocks from '@/mocks';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 
 describe('Login', () => {
    it('should render the Login page', () => {

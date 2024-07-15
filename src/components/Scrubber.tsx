@@ -221,9 +221,9 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
 
    return (
       <div ref={scrollbarElemRef} className="fixed w-1 bg-gray-500 top-28 bottom-10 right-2 transition-opacity duration-1000 opacity-0 rounded">
-         {nodes.map((node) => (
+         {nodes.map((node, i) => (
             <div
-               key={blocks[node.block]?.heading}
+               key={blocks[node.block]?.heading || i}
                className="absolute w-1 h-1 bg-gray-700 rounded-full"
                style={{ top: `${node.position * scrubberHeight - 2}px` }}
             ></div>

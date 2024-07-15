@@ -8,7 +8,7 @@
 
 import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 import { Scrubber } from '.';
 import { DraggableCore } from 'react-draggable';
 import { useThrottleFn } from '../hooks/useThrottleFn';
@@ -81,6 +81,33 @@ describe('Scrubber', () => {
          { heading: '2024-04-17', count: 10, total: 10 },
          { heading: '2024-04-15', count: 5, total: 15 },
          { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
+      ];
+      const scrollPosition = 0;
+      const currentBlock = 0;
+      const onScrub = jest.fn();
+      const onScrubStart = jest.fn();
+      const onScrubStop = jest.fn();
+
+      const component = render(
+         <Scrubber
+            blocks={blocks}
+            scrollPosition={scrollPosition}
+            currentBlock={currentBlock}
+            onScrub={onScrub}
+            onScrubStart={onScrubStart}
+            onScrubStop={onScrubStop}
+         />
+      );
+
+      expect(component.getByTestId('DraggableCore')).toBeInTheDocument();
+   });
+
+   it('should handle blocks with no heading', () => {
+      const blocks: MediaBlock[] = [
+         { count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { count: 34, total: 49 },
          { heading: '2024-03-31', count: 21, total: 70 },
       ];
       const scrollPosition = 0;
