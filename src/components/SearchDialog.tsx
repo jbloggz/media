@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useAPI, useHashRouter } from '@/hooks';
+import { useAPI, useHashRouter, useNavBarIcons } from '@/hooks';
 import { Map, MapCircle, Select } from '@/components';
 
 interface SearchDialogProps {
@@ -36,10 +36,10 @@ export const SearchDialog = (props: SearchDialogProps) => {
    const router = useHashRouter((v) => !v && dialogRef.current && dialogRef.current.close());
 
    const typeQuery = useAPI<string[]>({ url: '/api/searchOptions?field=type' });
-   const camerQuery = useAPI<string[]>({ url: '/api/searchOptions?field=make,model' });
+   const cameraQuery = useAPI<string[]>({ url: '/api/searchOptions?field=make,model' });
    const latestCoords = useAPI<GpsCoord>({ url: '/api/latestGps' });
    const typeOptions: SelectOption[] = typeQuery.data ? typeQuery.data.map((v) => ({ label: v, value: v })) : [];
-   const cameraOptions: SelectOption[] = camerQuery.data ? camerQuery.data.map((v) => ({ label: v, value: v })) : [];
+   const cameraOptions: SelectOption[] = cameraQuery.data ? cameraQuery.data.map((v) => ({ label: v, value: v })) : [];
 
    const submit = useCallback(() => {
       props.setFilter(filter);
@@ -67,6 +67,13 @@ export const SearchDialog = (props: SearchDialogProps) => {
       props.setFilter({});
    }, [props]);
 
+   /* Set the navbar icons */
+   const icons = [{ elem: <MagnifyingGlassIcon />, onClick: show }];
+   if (Object.keys(props.filter).length > 0) {
+      icons.push({ elem: <XMarkIcon />, onClick: reset });
+   }
+   useNavBarIcons(icons);
+
    /* Bind keyboard to actions */
    useEffect(() => {
       const handleKeyPress = (event: KeyboardEvent) => {
@@ -83,230 +90,220 @@ export const SearchDialog = (props: SearchDialogProps) => {
    }, [cancel]);
 
    return (
-      <div className="fixed top-3 right-16">
-         <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={show}>
-            <MagnifyingGlassIcon className="w-6 h-6" />
-         </button>
-         {Object.keys(props.filter).length > 0 && (
-            <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={reset}>
-               <XMarkIcon className="h-6 w-6" />
-            </button>
-         )}
-         <dialog ref={dialogRef} className="modal">
-            <div className="modal-box flex flex-col w-full h-full max-h-full max-w-full md:max-w-2xl md:max-h-[750px]">
-               <div className="container space-y-5 h-full flex flex-col">
-                  <h1 className="text-xl font-bold">Search</h1>
+      <dialog ref={dialogRef} className="modal">
+         <div className="modal-box flex flex-col w-full h-full max-h-full max-w-full md:max-w-2xl md:max-h-[750px]">
+            <div className="container space-y-5 h-full flex flex-col">
+               <h1 className="text-xl font-bold">Search</h1>
 
-                  <div role="tablist" className="tabs tabs-lifted">
-                     <a role="tab" className={`tab ${activeTab == 'general' ? 'tab-active' : ''}`} onClick={() => setActiveTab('general')}>
-                        General
+               <div role="tablist" className="tabs tabs-lifted">
+                  <a role="tab" className={`tab ${activeTab == 'general' ? 'tab-active' : ''}`} onClick={() => setActiveTab('general')}>
+                     General
+                  </a>
+                  <a role="tab" className={`tab ${activeTab == 'size' ? 'tab-active' : ''}`} onClick={() => setActiveTab('size')}>
+                     Size
+                  </a>
+                  {latestCoords.data && (
+                     <a role="tab" className={`tab ${activeTab == 'map' ? 'tab-active' : ''}`} onClick={() => setActiveTab('map')}>
+                        Map
                      </a>
-                     <a role="tab" className={`tab ${activeTab == 'size' ? 'tab-active' : ''}`} onClick={() => setActiveTab('size')}>
-                        Size
-                     </a>
-                     {latestCoords.data && (
-                        <a role="tab" className={`tab ${activeTab == 'map' ? 'tab-active' : ''}`} onClick={() => setActiveTab('map')}>
-                           Map
-                        </a>
-                     )}
-                     <a role="tab" className={`tab ${activeTab == 'tags' ? 'tab-active' : ''}`} onClick={() => setActiveTab('tags')}>
-                        Tags
-                     </a>
-                  </div>
+                  )}
+                  <a role="tab" className={`tab ${activeTab == 'tags' ? 'tab-active' : ''}`} onClick={() => setActiveTab('tags')}>
+                     Tags
+                  </a>
+               </div>
 
-                  <div className={`${activeTab === 'general' ? 'block' : 'hidden'} flex-grow`}>
-                     <label className="form-control w-full">
-                        <div className="label">
-                           <span className="label-text">Path</span>
-                        </div>
-                        <div className="flex w-full">
-                           <input
-                              name="path"
-                              type="text"
-                              value={filter.path || ''}
-                              onChange={(e) => dispatchFilter({ path: e.target.value })}
-                              placeholder="Regular expression"
-                              className="input input-bordered max-w-xs"
-                           />
-                        </div>
-                     </label>
-
-                     <div className="form-control w-full max-w-xs">
-                        <div className="label">
-                           <span className="label-text">Media Type</span>
-                        </div>
-                        <Select
-                           name="type"
-                           placeholder="Select..."
-                           isMulti
-                           options={typeOptions}
-                           value={typeOptions.filter((v) => filter.type?.includes(v.value))}
-                           onChange={(v: readonly SelectOption[]) => dispatchFilter({ type: v.map((opt) => opt.value) })}
+               <div className={`${activeTab === 'general' ? 'block' : 'hidden'} flex-grow`}>
+                  <label className="form-control w-full">
+                     <div className="label">
+                        <span className="label-text">Path</span>
+                     </div>
+                     <div className="flex w-full">
+                        <input
+                           name="path"
+                           type="text"
+                           value={filter.path || ''}
+                           onChange={(e) => dispatchFilter({ path: e.target.value })}
+                           placeholder="Regular expression"
+                           className="input input-bordered max-w-xs"
                         />
                      </div>
+                  </label>
 
-                     <label className="form-control w-full">
-                        <div className="label">
-                           <span className="label-text">Video Duration (seconds)</span>
-                        </div>
-                        <div className="flex w-full">
-                           <input
-                              name="durationMin"
-                              type="number"
-                              value={filter.durationMin || ''}
-                              onChange={(e) => dispatchFilter({ durationMin: +e.target.value })}
-                              min={0}
-                              placeholder="min"
-                              className="input input-bordered max-w-32"
-                           />
-                           <span className="mx-2 my-auto">to</span>
-                           <input
-                              name="durationMax"
-                              type="number"
-                              value={filter.durationMax || ''}
-                              onChange={(e) => dispatchFilter({ durationMax: +e.target.value })}
-                              min={0}
-                              placeholder="max"
-                              className="input input-bordered max-w-32"
-                           />
-                        </div>
-                     </label>
+                  <div className="form-control w-full max-w-xs">
+                     <div className="label">
+                        <span className="label-text">Media Type</span>
+                     </div>
+                     <Select
+                        name="type"
+                        placeholder="Select..."
+                        isMulti
+                        options={typeOptions}
+                        value={typeOptions.filter((v) => filter.type?.includes(v.value))}
+                        onChange={(v: readonly SelectOption[]) => dispatchFilter({ type: v.map((opt) => opt.value) })}
+                     />
+                  </div>
 
-                     <div className="form-control w-full max-w-xs">
-                        <div className="label">
-                           <span className="label-text">Camera (make/model)</span>
-                        </div>
-                        <Select
-                           name="camera"
-                           placeholder="Select..."
-                           isMulti
-                           options={cameraOptions}
-                           value={cameraOptions.filter((v) => filter.camera?.includes(v.value))}
-                           onChange={(v: readonly SelectOption[]) => dispatchFilter({ camera: v.map((opt) => opt.value) })}
+                  <label className="form-control w-full">
+                     <div className="label">
+                        <span className="label-text">Video Duration (seconds)</span>
+                     </div>
+                     <div className="flex w-full">
+                        <input
+                           name="durationMin"
+                           type="number"
+                           value={filter.durationMin || ''}
+                           onChange={(e) => dispatchFilter({ durationMin: +e.target.value })}
+                           min={0}
+                           placeholder="min"
+                           className="input input-bordered max-w-32"
+                        />
+                        <span className="mx-2 my-auto">to</span>
+                        <input
+                           name="durationMax"
+                           type="number"
+                           value={filter.durationMax || ''}
+                           onChange={(e) => dispatchFilter({ durationMax: +e.target.value })}
+                           min={0}
+                           placeholder="max"
+                           className="input input-bordered max-w-32"
                         />
                      </div>
-                  </div>
+                  </label>
 
-                  <div className={`${activeTab === 'size' ? 'block' : 'hidden'} flex-grow`}>
-                     <label className="form-control w-full">
-                        <div className="label">
-                           <span className="label-text">Height (pixels)</span>
-                        </div>
-                        <div className="flex w-full">
-                           <input
-                              name="heightMin"
-                              type="number"
-                              value={filter.heightMin || ''}
-                              onChange={(e) => dispatchFilter({ heightMin: +e.target.value })}
-                              placeholder="min"
-                              className="input input-bordered max-w-32"
-                           />
-                           <span className="mx-2 my-auto">to</span>
-                           <input
-                              name="heightMax"
-                              type="number"
-                              value={filter.heightMax || ''}
-                              onChange={(e) => dispatchFilter({ heightMax: +e.target.value })}
-                              placeholder="max"
-                              className="input input-bordered max-w-32"
-                           />
-                        </div>
-                     </label>
-
-                     <label className="form-control w-full">
-                        <div className="label">
-                           <span className="label-text">Width (pixels)</span>
-                        </div>
-                        <div className="flex w-full">
-                           <input
-                              name="widthMin"
-                              type="number"
-                              value={filter.widthMin || ''}
-                              onChange={(e) => dispatchFilter({ widthMin: +e.target.value })}
-                              placeholder="min"
-                              className="input input-bordered max-w-32"
-                           />
-                           <span className="mx-2 my-auto">to</span>
-                           <input
-                              name="widthMax"
-                              type="number"
-                              value={filter.widthMax || ''}
-                              onChange={(e) => dispatchFilter({ widthMax: +e.target.value })}
-                              placeholder="max"
-                              className="input input-bordered max-w-32"
-                           />
-                        </div>
-                     </label>
-
-                     <label className="form-control w-full">
-                        <div className="label">
-                           <span className="label-text">File Size (bytes)</span>
-                        </div>
-                        <div className="flex w-full">
-                           <input
-                              name="sizeMin"
-                              type="number"
-                              value={filter.sizeMin || ''}
-                              onChange={(e) => dispatchFilter({ sizeMin: +e.target.value })}
-                              placeholder="min"
-                              className="input input-bordered max-w-32"
-                           />
-                           <span className="mx-2 my-auto">to</span>
-                           <input
-                              name="sizeMax"
-                              type="number"
-                              value={filter.sizeMax || ''}
-                              onChange={(e) => dispatchFilter({ sizeMax: +e.target.value })}
-                              placeholder="max"
-                              className="input input-bordered max-w-32"
-                           />
-                        </div>
-                     </label>
-                  </div>
-
-                  <div className={`${activeTab === 'map' ? 'block' : 'hidden'} flex-grow relative`}>
-                     {filter.location && (
-                        <button
-                           data-theme="light"
-                           onClick={() => dispatchFilter({ radius: undefined, location: undefined })}
-                           className="google-map-btn absolute m-3 right-0 z-10"
-                        >
-                           Clear location
-                        </button>
-                     )}
-                     {latestCoords.data && (
-                        <Map
-                           mapId={'SeachMap'}
-                           center={filter.location || latestCoords.data}
-                           onClick={(pos) => !filter.location && dispatchFilter({ location: pos })}
-                        >
-                           {filter.location && (
-                              <MapCircle
-                                 center={filter.location}
-                                 radius={filter.radius}
-                                 editable
-                                 onChange={(center, radius) => dispatchFilter({ location: center, radius: radius })}
-                              />
-                           )}
-                        </Map>
-                     )}
-                  </div>
-
-                  <div className={`${activeTab === 'tags' ? 'block' : 'hidden'} flex-grow`}>
-                     <p>Coming soon!</p>
+                  <div className="form-control w-full max-w-xs">
+                     <div className="label">
+                        <span className="label-text">Camera (make/model)</span>
+                     </div>
+                     <Select
+                        name="camera"
+                        placeholder="Select..."
+                        isMulti
+                        options={cameraOptions}
+                        value={cameraOptions.filter((v) => filter.camera?.includes(v.value))}
+                        onChange={(v: readonly SelectOption[]) => dispatchFilter({ camera: v.map((opt) => opt.value) })}
+                     />
                   </div>
                </div>
 
-               <div className="modal-action">
-                  <button className="btn" onClick={submit}>
-                     Search
-                  </button>
-                  <button className="btn ml-4" onClick={cancel}>
-                     Cancel
-                  </button>
+               <div className={`${activeTab === 'size' ? 'block' : 'hidden'} flex-grow`}>
+                  <label className="form-control w-full">
+                     <div className="label">
+                        <span className="label-text">Height (pixels)</span>
+                     </div>
+                     <div className="flex w-full">
+                        <input
+                           name="heightMin"
+                           type="number"
+                           value={filter.heightMin || ''}
+                           onChange={(e) => dispatchFilter({ heightMin: +e.target.value })}
+                           placeholder="min"
+                           className="input input-bordered max-w-32"
+                        />
+                        <span className="mx-2 my-auto">to</span>
+                        <input
+                           name="heightMax"
+                           type="number"
+                           value={filter.heightMax || ''}
+                           onChange={(e) => dispatchFilter({ heightMax: +e.target.value })}
+                           placeholder="max"
+                           className="input input-bordered max-w-32"
+                        />
+                     </div>
+                  </label>
+
+                  <label className="form-control w-full">
+                     <div className="label">
+                        <span className="label-text">Width (pixels)</span>
+                     </div>
+                     <div className="flex w-full">
+                        <input
+                           name="widthMin"
+                           type="number"
+                           value={filter.widthMin || ''}
+                           onChange={(e) => dispatchFilter({ widthMin: +e.target.value })}
+                           placeholder="min"
+                           className="input input-bordered max-w-32"
+                        />
+                        <span className="mx-2 my-auto">to</span>
+                        <input
+                           name="widthMax"
+                           type="number"
+                           value={filter.widthMax || ''}
+                           onChange={(e) => dispatchFilter({ widthMax: +e.target.value })}
+                           placeholder="max"
+                           className="input input-bordered max-w-32"
+                        />
+                     </div>
+                  </label>
+
+                  <label className="form-control w-full">
+                     <div className="label">
+                        <span className="label-text">File Size (bytes)</span>
+                     </div>
+                     <div className="flex w-full">
+                        <input
+                           name="sizeMin"
+                           type="number"
+                           value={filter.sizeMin || ''}
+                           onChange={(e) => dispatchFilter({ sizeMin: +e.target.value })}
+                           placeholder="min"
+                           className="input input-bordered max-w-32"
+                        />
+                        <span className="mx-2 my-auto">to</span>
+                        <input
+                           name="sizeMax"
+                           type="number"
+                           value={filter.sizeMax || ''}
+                           onChange={(e) => dispatchFilter({ sizeMax: +e.target.value })}
+                           placeholder="max"
+                           className="input input-bordered max-w-32"
+                        />
+                     </div>
+                  </label>
+               </div>
+
+               <div className={`${activeTab === 'map' ? 'block' : 'hidden'} flex-grow relative`}>
+                  {filter.location && (
+                     <button
+                        data-theme="light"
+                        onClick={() => dispatchFilter({ radius: undefined, location: undefined })}
+                        className="google-map-btn absolute m-3 right-0 z-10"
+                     >
+                        Clear location
+                     </button>
+                  )}
+                  {latestCoords.data && (
+                     <Map
+                        mapId={'SeachMap'}
+                        center={filter.location || latestCoords.data}
+                        onClick={(pos) => !filter.location && dispatchFilter({ location: pos })}
+                     >
+                        {filter.location && (
+                           <MapCircle
+                              center={filter.location}
+                              radius={filter.radius}
+                              editable
+                              onChange={(center, radius) => dispatchFilter({ location: center, radius: radius })}
+                           />
+                        )}
+                     </Map>
+                  )}
+               </div>
+
+               <div className={`${activeTab === 'tags' ? 'block' : 'hidden'} flex-grow`}>
+                  <p>Coming soon!</p>
                </div>
             </div>
-         </dialog>
-      </div>
+
+            <div className="modal-action">
+               <button className="btn" onClick={submit}>
+                  Search
+               </button>
+               <button className="btn ml-4" onClick={cancel}>
+                  Cancel
+               </button>
+            </div>
+         </div>
+      </dialog>
    );
 };

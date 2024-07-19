@@ -12,10 +12,10 @@ import { render } from '@testing-library/react';
 import mocks from '@/mocks';
 import RootLayout from './layout';
 import GoogleLogin from './login/page';
-import { AppDrawer } from '../components/AppDrawer';
+import { App } from '../components/App';
 
-jest.mock('../components/AppDrawer', () => ({
-   AppDrawer: jest.fn().mockImplementation(({ children }) => <div data-testid="AppDrawer">{children}</div>),
+jest.mock('../components/App', () => ({
+   App: jest.fn().mockImplementation(({ children }) => <div data-testid="App">{children}</div>),
 }));
 jest.mock('../components/NavBar', () => ({
    NavBar: jest.fn().mockReturnValue(<div data-testid="NavBar"></div>),
@@ -42,8 +42,8 @@ describe('RootLayout', () => {
       console.error = originalConsoleError;
    });
 
-   it('should render the AppDrawer if the user is logged in', async () => {
-      mocks.nextAuth.getServerSession.mockResolvedValue({ user: { email: 'test@example.com' } });
+   it('should render the App if the user is logged in', async () => {
+      mocks.nextAuth.getServerSession.mockResolvedValue({ user: { email: 'test@example.com' }, expires: '' });
       const RootLayoutResolved = await awaitRootLayout(<div>Test App</div>);
       const component = render(<RootLayoutResolved />);
       expect(component.getByText('Test App')).toBeInTheDocument();
@@ -52,8 +52,8 @@ describe('RootLayout', () => {
    it('should render the LoginPage if the user is not logged in', async () => {
       mocks.nextAuth.getServerSession.mockResolvedValue({});
       const RootLayoutResolved = await awaitRootLayout(<div>Test App</div>);
-      const component = render(<RootLayoutResolved />);
+      render(<RootLayoutResolved />);
       expect(GoogleLogin as jest.Mock).toHaveBeenCalled();
-      expect(AppDrawer as jest.Mock).not.toHaveBeenCalled();
+      expect(App as jest.Mock).not.toHaveBeenCalled();
    });
 });

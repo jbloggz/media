@@ -5,15 +5,17 @@
  *
  * The main navigation bar at the top of the page
  */
+'use client';
 
+import { cloneElement } from 'react';
 import { NavUserMenu } from '@/components';
 import { Bars3Icon } from '@heroicons/react/24/outline';
-import { getServerSession } from 'next-auth';
 
-export const NavBar = async () => {
-   const session = await getServerSession();
-   const email = session?.user?.email || '';
+interface NavBarProps {
+   icons: NavBarIcon[];
+}
 
+export const NavBar = (props: NavBarProps) => {
    return (
       <nav className="w-full navbar bg-base-100">
          <div className="flex-none">
@@ -22,7 +24,12 @@ export const NavBar = async () => {
             </label>
          </div>
          <div className="flex-1 px-2 mx-2">Media Browser</div>
-         <NavUserMenu email={email} />
+         {props.icons.map((icon, idx) => (
+            <button key={idx} className="btn btn-circle opacity-70 hover:opacity-100" onClick={icon.onClick}>
+               {cloneElement(icon.elem, { className: 'w-6 h-6' })}
+            </button>
+         ))}
+         <NavUserMenu />
       </nav>
    );
 };

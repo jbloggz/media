@@ -11,6 +11,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { act } from 'react';
 import mocks from '@/mocks';
 import * as useAPI from '../hooks/useAPI';
+import * as useNavBarIcons from '../hooks/useNavBarIcons';
 import { Select } from './Select';
 import { Map, MapCircle } from './Map';
 import { SearchDialog } from '.';
@@ -34,13 +35,16 @@ const mockUseAPI = jest.spyOn(useAPI, 'useAPI').mockReturnValue({
    mutate: jest.fn(),
    isValidating: false,
 });
+jest.mock('../hooks/useNavBarIcons');
+const mockUseNavBarIcons = jest.spyOn(useNavBarIcons, 'useNavBarIcons');
+
 
 describe('SearchDialog', () => {
    it('should open dialog when search button is clicked', () => {
-      const component = render(<SearchDialog filter={{}} setFilter={jest.fn()} />);
-      const searchButton = component.getAllByRole('button', { hidden: true })[0];
+      render(<SearchDialog filter={{}} setFilter={jest.fn()} />);
+      const searchIcon = mockUseNavBarIcons.mock.calls[0][0][0];
       act(() => {
-         searchButton.click();
+         searchIcon.onClick();
       });
       expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
       expect(mocks.nextNavigation.router.push).toHaveBeenCalledWith('#search');
@@ -48,7 +52,11 @@ describe('SearchDialog', () => {
 
    it('should navigate back when cancel button is clicked', () => {
       const component = render(<SearchDialog filter={{}} setFilter={jest.fn()} />);
+      const searchIcon = mockUseNavBarIcons.mock.calls[0][0][0];
       const cancelButton = component.getByText('Cancel');
+      act(() => {
+         searchIcon.onClick();
+      });
       act(() => {
          cancelButton.click();
       });
@@ -59,6 +67,10 @@ describe('SearchDialog', () => {
       const mockSetFilter = jest.fn();
       const component = render(<SearchDialog filter={{}} setFilter={mockSetFilter} />);
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
+      const searchIcon = mockUseNavBarIcons.mock.calls[0][0][0];
+      act(() => {
+         searchIcon.onClick();
+      });
       act(() => {
          submitButton.click();
       });
@@ -67,10 +79,10 @@ describe('SearchDialog', () => {
 
    it('should call the setFilter callback with empty object on reset', () => {
       const mockSetFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={mockSetFilter} />);
-      const resetButton = component.getAllByRole('button', { hidden: true })[1];
+      render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={mockSetFilter} />);
+      const resetIcon = mockUseNavBarIcons.mock.calls[0][0][1];
       act(() => {
-         resetButton.click();
+         resetIcon.onClick();
       });
       expect(mockSetFilter).toHaveBeenCalledWith({});
    });

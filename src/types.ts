@@ -84,6 +84,15 @@ interface SearchFilter {
    radius?: number;
 }
 
+/* Search filters for the gallery */
+interface NavBarIcon {
+   /* The icon component */
+   elem: JSX.Element;
+
+   /* The onclick handler to assign */
+   onClick: () => void;
+}
+
 /* An option for a select input */
 interface SelectOption {
    /* The lable to display */

@@ -10,22 +10,24 @@ import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
 import { act } from 'react';
 import mocks from '@/mocks';
+import * as useSession from '../hooks/useSession';
 import { NavUserMenu } from '.';
+
+/* Mock out dependencies */
+jest.mock('../hooks/useSession');
+const mockUseSession = jest.spyOn(useSession, 'useSession');
 
 describe('NavUserMenu', () => {
    it('should render dropdown menu with user email and logout button', () => {
-      const email = 'test@example.com';
-
-      const component = render(<NavUserMenu email={email} />);
-
-      expect(component.getByText(email)).toBeInTheDocument();
+      mockUseSession.mockReturnValue({ user: { email: 'test@example.com' }, expires: '' });
+      const component = render(<NavUserMenu />);
+      expect(component.getByText('test@example.com')).toBeInTheDocument();
       expect(component.getByText('Logout')).toBeInTheDocument();
    });
 
-   it('should call the signoit function when then logout link is clicked', () => {
-      const email = 'test@example.com';
-
-      const component = render(<NavUserMenu email={email} />);
+   it('should call the signout function when then logout link is clicked', () => {
+      mockUseSession.mockReturnValue({ user: { email: 'test@example.com' }, expires: '' });
+      const component = render(<NavUserMenu />);
       const logoutLink = component.getByText('Logout');
       expect(mocks.nextAuth.signOut).not.toHaveBeenCalled();
       act(() => {

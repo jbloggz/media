@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 
 export const useHashRouter = (onChange?: (v: string) => void) => {
    const router = useRouter();
-   const [hash, setHash] = useState<string>(() => window.location.hash.slice(1));
+   const [hash, setHash] = useState<string>(() => (typeof window !== 'undefined' ? window.location.hash.slice(1) : ''));
 
    const hashChangeHandler = useCallback(() => {
       const newHash = window.location.hash.slice(1);

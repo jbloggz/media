@@ -7,6 +7,7 @@
  */
 
 export * from './AboutDialog';
+export * from './App';
 export * from './AppDrawer';
 export * from './Gallery';
 export * from './ImageSkeleton';
