@@ -7,11 +7,9 @@
  */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { act } from 'react';
-import mocks from '@/mocks';
 import * as useAPI from '../hooks/useAPI';
-import * as useNavBarIcons from '../hooks/useNavBarIcons';
 import { Select } from './Select';
 import { Map, MapCircle } from './Map';
 import { SearchDialog } from '.';
@@ -35,73 +33,59 @@ const mockUseAPI = jest.spyOn(useAPI, 'useAPI').mockReturnValue({
    mutate: jest.fn(),
    isValidating: false,
 });
-jest.mock('../hooks/useNavBarIcons');
-const mockUseNavBarIcons = jest.spyOn(useNavBarIcons, 'useNavBarIcons');
-
 
 describe('SearchDialog', () => {
-   it('should open dialog when search button is clicked', () => {
-      render(<SearchDialog filter={{}} setFilter={jest.fn()} />);
-      const searchIcon = mockUseNavBarIcons.mock.calls[0][0][0];
-      act(() => {
-         searchIcon.onClick();
-      });
-      expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
-      expect(mocks.nextNavigation.router.push).toHaveBeenCalledWith('#search');
+   it('should not be open if the open prop is false', () => {
+      render(<SearchDialog filter={{}} setFilter={jest.fn()} onClose={jest.fn()} />);
+      expect(screen.getByText('General')).not.toBeVisible();
    });
 
-   it('should navigate back when cancel button is clicked', () => {
-      const component = render(<SearchDialog filter={{}} setFilter={jest.fn()} />);
-      const searchIcon = mockUseNavBarIcons.mock.calls[0][0][0];
+   it('should be open if the open prop is true', () => {
+      render(<SearchDialog filter={{}} setFilter={jest.fn()} onClose={jest.fn()} open />);
+      expect(screen.getByText('General')).toBeVisible();
+   });
+
+   it('should close the dialog when cancel button is clicked', () => {
+      const mockClose = jest.fn();
+      const component = render(<SearchDialog filter={{}} setFilter={jest.fn()} onClose={mockClose} open />);
       const cancelButton = component.getByText('Cancel');
-      act(() => {
-         searchIcon.onClick();
-      });
+      expect(mockClose).not.toHaveBeenCalled();
       act(() => {
          cancelButton.click();
       });
-      expect(mocks.nextNavigation.router.back).toHaveBeenCalled();
+      expect(mockClose).toHaveBeenCalled();
    });
 
    it('should call the setFilter callback on submit', () => {
       const mockSetFilter = jest.fn();
-      const component = render(<SearchDialog filter={{}} setFilter={mockSetFilter} />);
+      const mockClose = jest.fn();
+      const component = render(<SearchDialog filter={{}} setFilter={mockSetFilter} onClose={mockClose} open />);
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
-      const searchIcon = mockUseNavBarIcons.mock.calls[0][0][0];
-      act(() => {
-         searchIcon.onClick();
-      });
+      expect(mockClose).not.toHaveBeenCalled();
       act(() => {
          submitButton.click();
       });
       expect(mockSetFilter).toHaveBeenCalledWith({});
-   });
-
-   it('should call the setFilter callback with empty object on reset', () => {
-      const mockSetFilter = jest.fn();
-      render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={mockSetFilter} />);
-      const resetIcon = mockUseNavBarIcons.mock.calls[0][0][1];
-      act(() => {
-         resetIcon.onClick();
-      });
-      expect(mockSetFilter).toHaveBeenCalledWith({});
+      expect(mockClose).toHaveBeenCalled();
    });
 
    it('should close the dialog when escape is pressed', () => {
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
+      const mockClose = jest.fn();
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} onClose={mockClose} open />);
+      expect(mockClose).not.toHaveBeenCalled();
       act(() => {
          fireEvent.keyDown(component.container, { key: 'Escape', code: 'escape' });
       });
-      expect(mocks.nextNavigation.router.back).toHaveBeenCalled();
+      expect(mockClose).toHaveBeenCalled();
    });
 
    it('should default to showing the General tab', () => {
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} onClose={jest.fn()} open />);
       expect(component.getByRole('tab', { name: /general/i, hidden: true })).toHaveClass('tab-active');
    });
 
    it('should show the Size tab when clicked', () => {
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} onClose={jest.fn()} open />);
       const sizeTab = component.getByRole('tab', { name: /size/i, hidden: true });
       expect(sizeTab).not.toHaveClass('tab-active');
       act(() => {
@@ -111,7 +95,7 @@ describe('SearchDialog', () => {
    });
 
    it('should show the Map tab when clicked', () => {
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} onClose={jest.fn()} open />);
       const mapTab = component.getByRole('tab', { name: /map/i, hidden: true });
       expect(mapTab).not.toHaveClass('tab-active');
       act(() => {
@@ -121,7 +105,7 @@ describe('SearchDialog', () => {
    });
 
    it('should show the Tags tab when clicked', () => {
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} onClose={jest.fn()} open />);
       const tagsTab = component.getByRole('tab', { name: /tags/i, hidden: true });
       expect(tagsTab).not.toHaveClass('tab-active');
       act(() => {
@@ -131,7 +115,7 @@ describe('SearchDialog', () => {
    });
 
    it('should show the General tab when clicked', () => {
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} onClose={jest.fn()} open />);
       const tagsTab = component.getByRole('tab', { name: /tags/i, hidden: true });
       expect(tagsTab).not.toHaveClass('tab-active');
       act(() => {
@@ -161,7 +145,7 @@ describe('SearchDialog', () => {
 
          return resp;
       });
-      render(<SearchDialog filter={{ sizeMax: 1234, type: ['image'] }} setFilter={jest.fn()} />);
+      render(<SearchDialog filter={{ sizeMax: 1234, type: ['image'] }} setFilter={jest.fn()} onClose={jest.fn()} open />);
       expect(Select).toHaveBeenCalledWith(
          expect.objectContaining({
             options: [
@@ -188,7 +172,7 @@ describe('SearchDialog', () => {
 
          return resp;
       });
-      render(<SearchDialog filter={{ sizeMax: 1234, camera: ['foo'] }} setFilter={jest.fn()} />);
+      render(<SearchDialog filter={{ sizeMax: 1234, camera: ['foo'] }} setFilter={jest.fn()} onClose={jest.fn()} open />);
       expect(Select).toHaveBeenCalledWith(
          expect.objectContaining({
             options: [
@@ -209,7 +193,7 @@ describe('SearchDialog', () => {
          mutate: jest.fn(),
          isValidating: false,
       });
-      render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} />);
+      render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={jest.fn()} onClose={jest.fn()} open />);
       expect(Select).toHaveBeenCalledWith(
          expect.objectContaining({
             options: [],
@@ -220,7 +204,7 @@ describe('SearchDialog', () => {
 
    it('should update filter when path regex changes', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const input = component.container.querySelector('input[name="path"]') as HTMLInputElement;
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
       act(() => {
@@ -235,7 +219,7 @@ describe('SearchDialog', () => {
 
    it('should update filter when media type select changes', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const mediaTypeOnChange = (Select as jest.Mock).mock.calls[0][0].onChange;
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
       act(() => {
@@ -253,7 +237,7 @@ describe('SearchDialog', () => {
 
    it('should update filter when durationMin changes', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const input = component.container.querySelector('input[name="durationMin"]') as HTMLInputElement;
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
       act(() => {
@@ -268,7 +252,7 @@ describe('SearchDialog', () => {
 
    it('should update filter when durationMax changes', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const minInput = component.container.querySelector('input[name="durationMin"]') as HTMLInputElement;
       const maxInput = component.container.querySelector('input[name="durationMax"]') as HTMLInputElement;
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
@@ -285,7 +269,7 @@ describe('SearchDialog', () => {
 
    it('should update filter when camera changes', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const cameraOnChange = (Select as jest.Mock).mock.calls[1][0].onChange;
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
       act(() => {
@@ -303,7 +287,7 @@ describe('SearchDialog', () => {
 
    it('should update filter when height changes', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const minInput = component.container.querySelector('input[name="heightMin"]') as HTMLInputElement;
       const maxInput = component.container.querySelector('input[name="heightMax"]') as HTMLInputElement;
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
@@ -320,7 +304,7 @@ describe('SearchDialog', () => {
 
    it('should update filter when width changes', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const minInput = component.container.querySelector('input[name="widthMin"]') as HTMLInputElement;
       const maxInput = component.container.querySelector('input[name="widthMax"]') as HTMLInputElement;
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
@@ -337,7 +321,7 @@ describe('SearchDialog', () => {
 
    it('should update filter when file size changes', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const minInput = component.container.querySelector('input[name="sizeMin"]') as HTMLInputElement;
       const maxInput = component.container.querySelector('input[name="sizeMax"]') as HTMLInputElement;
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
@@ -367,7 +351,9 @@ describe('SearchDialog', () => {
          return resp;
       });
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234, location: { lat: 234, lng: 23 } }} setFilter={setFilter} />);
+      const component = render(
+         <SearchDialog filter={{ sizeMax: 1234, location: { lat: 234, lng: 23 } }} setFilter={setFilter} onClose={jest.fn()} open />
+      );
       const circle = (MapCircle as jest.Mock).mock.calls[0][0];
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
       act(() => {
@@ -395,7 +381,7 @@ describe('SearchDialog', () => {
          return resp;
       });
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} />);
+      const component = render(<SearchDialog filter={{ sizeMax: 1234 }} setFilter={setFilter} onClose={jest.fn()} open />);
       const map = (Map as jest.Mock).mock.calls[0][0];
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
       act(() => {
@@ -410,7 +396,9 @@ describe('SearchDialog', () => {
 
    it('should clear location when "Clear location" buton is clicked', () => {
       const setFilter = jest.fn();
-      const component = render(<SearchDialog filter={{ sizeMax: 1234, location: { lat: 234, lng: 23 } }} setFilter={setFilter} />);
+      const component = render(
+         <SearchDialog filter={{ sizeMax: 1234, location: { lat: 234, lng: 23 } }} setFilter={setFilter} onClose={jest.fn()} open />
+      );
       const clearButton = component.getByRole('button', { name: /clear location/i, hidden: true });
       const submitButton = component.getByRole('button', { name: /search/i, hidden: true });
       act(() => {

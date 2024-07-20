@@ -293,7 +293,7 @@ describe('Gallery', () => {
       const component = render(<Gallery blocks={blocks} scrubber />);
       component.rerender(<Gallery blocks={blocks} scrubber />);
       act(() => {
-         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onImageClick(1234);
+         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1234);
       });
 
       expect((MediaDialog as jest.Mock).mock.lastCall?.[0].id).toEqual(1234);
@@ -310,7 +310,7 @@ describe('Gallery', () => {
       const component = render(<Gallery blocks={blocks} scrubber />);
       component.rerender(<Gallery blocks={blocks} scrubber />);
       act(() => {
-         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onImageClick(1234);
+         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1234);
       });
       act(() => {
          (MediaDialog as jest.Mock).mock.lastCall?.[0].onClose();
@@ -329,7 +329,7 @@ describe('Gallery', () => {
       const component = render(<Gallery blocks={blocks} scrubber />);
       component.rerender(<Gallery blocks={blocks} scrubber />);
       act(() => {
-         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onImageClick(1234);
+         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1234);
       });
 
       expect((MediaDialog as jest.Mock).mock.lastCall?.[0].id).toEqual(1234);

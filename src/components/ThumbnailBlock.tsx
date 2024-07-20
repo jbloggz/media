@@ -18,7 +18,7 @@ interface ThumbnailBlockProps {
    block: MediaBlock;
    className?: string;
    onItemClick: (id: number) => void;
-   selectMode: boolean;
+   selectMode?: boolean;
    selectedItems: Set<number>;
 }
 

@@ -14,7 +14,7 @@ import { Map, MapCircle, Select } from '@/components';
 interface SearchDialogProps {
    filter: SearchFilter;
    setFilter: (f: SearchFilter) => void;
-   open: boolean;
+   open?: boolean;
    onClose: () => void;
 }
 

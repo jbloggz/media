@@ -27,7 +27,7 @@ describe('ThumbnailBlock', () => {
       const block: MediaBlock = { heading: '2024-03-27', count: 10, total: 83 };
 
       mockUseSeachAPI.mockReturnValue({ isLoading: false, data: [], error: undefined, mutate: jest.fn(), isValidating: false });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} />);
+      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
 
       expect(component.container.querySelector('div')).toHaveClass(className);
       expect(ref.current).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('ThumbnailBlock', () => {
       const block: MediaBlock = { heading: '2024-03-27', count: 10, total: 83 };
 
       mockUseSeachAPI.mockReturnValue({ isLoading: true, data: null, error: undefined, mutate: jest.fn(), isValidating: false });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} />);
+      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
 
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(10);
    });
@@ -60,7 +60,7 @@ describe('ThumbnailBlock', () => {
          mutate: jest.fn(),
          isValidating: false,
       });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} />);
+      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(3);
    });
 
@@ -76,7 +76,7 @@ describe('ThumbnailBlock', () => {
          mutate: jest.fn(),
          isValidating: false,
       });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} />);
+      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(8);
       expect(mocks.reactToastify.toast.error).toHaveBeenCalledWith('Oh no!!');
    });
@@ -93,7 +93,7 @@ describe('ThumbnailBlock', () => {
          mutate: jest.fn(),
          isValidating: false,
       });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} />);
+      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(8);
       expect(mocks.reactToastify.toast.error).toHaveBeenCalledWith('Unknown error occurred');
    });
