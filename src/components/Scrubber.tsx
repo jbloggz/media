@@ -219,8 +219,18 @@ export const Scrubber = ({ blocks, scrollPosition, currentBlock, onScrub, onScru
       sliderElem.style.top = `${position - 16}px`;
    }, [isScrubbing, nodes, currentBlock, blockToNodeMap, currentNode, scrubberHeight]);
 
+   /* React currently doesn't handle the onTransitionStart event properly, so need to do it manually here */
+   if (scrollbarElemRef.current && !scrollbarElemRef.current.ontransitionstart) {
+      scrollbarElemRef.current.ontransitionstart = () =>
+         scrollbarElemRef.current?.classList.contains('opacity-60') && scrollbarElemRef.current?.classList.remove('-z-10');
+   }
+
    return (
-      <div ref={scrollbarElemRef} className="fixed w-1 bg-gray-500 top-28 bottom-10 right-2 transition-opacity duration-1000 opacity-0 rounded">
+      <div
+         ref={scrollbarElemRef}
+         onTransitionEnd={() => scrollbarElemRef.current?.classList.contains('opacity-0') && scrollbarElemRef.current?.classList.add('-z-10')}
+         className="fixed w-1 bg-gray-500 top-28 bottom-10 right-2 transition-opacity duration-1000 opacity-0 rounded"
+      >
          {nodes.map((node, i) => (
             <div
                key={blocks[node.block]?.heading || i}
