@@ -7,15 +7,19 @@
  */
 'use client';
 
-import { forwardRef, useEffect } from 'react';
+import { forwardRef, useCallback, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useSearchAPI } from '@/hooks';
 import { ThumbnailImage } from '.';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 
 interface ThumbnailBlockProps {
    block: MediaBlock;
    className?: string;
-   onImageClick?: (id: number) => void;
+   onItemClick: (id: number) => void;
+   selectMode: boolean;
+   selectedItems: Set<number>;
 }
 
 const getBlockHeading = (heading: string): string => {
@@ -38,12 +42,38 @@ export const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(fu
 
    const items = props.block.items || api.data;
 
+   const onSelectAllClick = useCallback(() => {
+      const select_all = props.selectedItems.size !== props.block.count;
+      for (const item of items || []) {
+         select_all !== props.selectedItems.has(item.id) && props.onItemClick(item.id);
+      }
+   }, [items, props]);
+
    return (
       <div ref={ref} className={props.className}>
-         {props.block.heading && <h1 className="text-xl font-bold p-2">{getBlockHeading(props.block.heading)}</h1>}
+         <div className="flex flex-row">
+            {props.block.heading && <h1 className="text-xl font-bold p-2 flex-grow">{getBlockHeading(props.block.heading)}</h1>}
+            {props.selectMode && (
+               <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={onSelectAllClick}>
+                  {props.selectedItems.size === props.block.count ? (
+                     <CheckCircleIconSolid className="w-6 h-6 m-2 cursor-pointer" />
+                  ) : (
+                     <CheckCircleIcon className="w-6 h-6 m-2 cursor-pointer" />
+                  )}
+               </button>
+            )}
+         </div>
          <div className="pb-1 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1">
             {items
-               ? items.map((meta) => <ThumbnailImage key={meta.id} meta={meta} onClick={props.onImageClick} />)
+               ? items.map((meta) => (
+                    <ThumbnailImage
+                       key={meta.id}
+                       meta={meta}
+                       onClick={props.onItemClick}
+                       selectMode={props.selectMode}
+                       selected={props.selectedItems.has(meta.id)}
+                    />
+                 ))
                : Array.from(Array(props.block.count)).map((_, i) => <ThumbnailImage key={i} />)}
          </div>
       </div>

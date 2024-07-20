@@ -8,12 +8,17 @@
 'use client';
 
 import Image from 'next/image';
+import classNames from 'classnames';
+import { CheckCircleIcon, StopCircleIcon } from '@heroicons/react/24/solid';
+import { CheckIcon } from '@heroicons/react/24/outline';
 import { ImageSkeleton } from '.';
 
 interface ThumbnailImageProps {
    meta?: ThumbMeta;
    noOverlay?: boolean;
    onClick?: (id: number) => void;
+   selectMode?: boolean;
+   selected?: boolean;
 }
 
 const prettyDuration = (duration: number): string => {
@@ -26,9 +31,15 @@ const prettyDuration = (duration: number): string => {
 };
 
 export const ThumbnailImage = (props: ThumbnailImageProps) => {
+   const innerClasses = classNames(
+      'm-auto flex items-center justify-center bg-gray-300 rounded dark:bg-gray-700 relative group transition-all',
+      { 'w-full h-full': !props.selected },
+      { 'w-[90%] h-[90%] rounded-xl translate-y-[5%]': props.selected }
+   );
+
    return (
       <div className="relative w-full aspect-square overflow-hidden" onClick={() => props.onClick && props.meta?.id && props.onClick(props.meta.id)}>
-         <div className="flex items-center justify-center w-full h-full bg-gray-300 rounded dark:bg-gray-700 relative group">
+         <div className={innerClasses}>
             <ImageSkeleton />
             {props.meta && (
                <>
@@ -38,7 +49,7 @@ export const ThumbnailImage = (props: ThumbnailImageProps) => {
                      fill={true}
                      alt=""
                      sizes="100px"
-                     className={props.onClick ? 'cursor-pointer' : ''}
+                     className={(props.onClick ? 'cursor-pointer' : '') + (props.selected ? ' rounded-xl' : '')}
                   />
                   {props.meta.type === 'video' && !props.noOverlay && (
                      <>
@@ -56,6 +67,15 @@ export const ThumbnailImage = (props: ThumbnailImageProps) => {
                </>
             )}
          </div>
+         {props.selectMode &&
+            (props.selected ? (
+               <>
+                  <div className="w-5 h-5 bg-gray-300 border border-blue-400 left-1.5 top-1.5 absolute rounded-full" />
+                  <CheckCircleIcon className="w-6 h-6 absolute top-1 left-1 fill-blue-400 cursor-pointer" />
+               </>
+            ) : (
+               <div className="w-5 h-5 border border-gray-300 left-1.5 top-1.5 absolute rounded-full cursor-pointer" />
+            ))}
       </div>
    );
 };

@@ -15,6 +15,14 @@ import { useHashRouter, useThrottleFn } from '@/hooks';
 const addBlockThreshold = 5000;
 const removeBlockThreshold = 10000;
 
+const toggleSet = (set: Set<number>, value: number) => {
+   if (set.has(value)) {
+      set.delete(value);
+   } else {
+      set.add(value);
+   }
+};
+
 /** The range of blocks to display on the screen */
 interface DisplayRange {
    /** The first block to display */
@@ -25,9 +33,9 @@ interface DisplayRange {
 }
 
 interface GalleryProps {
-   /* The media blocks available */
    blocks: MediaBlock[];
    scrubber?: boolean;
+   selectMode?: boolean;
 }
 
 export const Gallery = (props: GalleryProps) => {
@@ -37,8 +45,24 @@ export const Gallery = (props: GalleryProps) => {
    const [blockRange, setBlockRange] = useState<DisplayRange>({ start: 0, end: 1 });
    const [visibleBlock, setVisibleBlock] = useState(0);
    const [isScrubbing, setIsScrubbing] = useState(false);
-   const [selectedImage, setSelectedImage] = useState<number | null>(null);
-   const router = useHashRouter((v) => !v && setSelectedImage(null));
+   const [dialogItem, setDialogItem] = useState<number | null>(null);
+   const router = useHashRouter((v) => !v && setDialogItem(null));
+   const selectModeEnabled = 'selectMode' in props && props.selectMode ? true : false;
+   const [selectedItems, setSelectedItems] = useState<Set<number>[]>(props.blocks.map(() => new Set()));
+
+   /* Called when a media item is clicked */
+   const onItemClick = useCallback(
+      (id: number, blockidx: number) => {
+         if (selectModeEnabled) {
+            toggleSet(selectedItems[blockidx], id);
+            setSelectedItems([...selectedItems]);
+         } else {
+            router.push(`view:${id}`);
+            setDialogItem(id);
+         }
+      },
+      [router, selectedItems, selectModeEnabled]
+   );
 
    /* Called when the user is scrubbing */
    const onScrub = useCallback(
@@ -149,9 +173,16 @@ export const Gallery = (props: GalleryProps) => {
       scrollPosition
    );
 
+   /* Unselect everything if selectMode is disabled */
+   useEffect(() => {
+      if (!props.selectMode) {
+         setSelectedItems(props.blocks.map(() => new Set()));
+      }
+   }, [props.selectMode, props.blocks]);
+
    return (
       <div
-         role='grid'
+         role="grid"
          className="container p-1 mx-auto overflow-y-scroll flex-1 no-scrollbar"
          ref={mainElemRef}
          onScroll={(e) => setScrollPosition(e.currentTarget.scrollTop)}
@@ -164,10 +195,9 @@ export const Gallery = (props: GalleryProps) => {
                ref={(elem) => {
                   blockRef.current[blockRange.start + idx] = elem;
                }}
-               onImageClick={(id) => {
-                  router.push(`view:${id}`);
-                  setSelectedImage(id);
-               }}
+               onItemClick={(id) => onItemClick(id, blockRange.start + idx)}
+               selectMode={selectModeEnabled}
+               selectedItems={selectedItems[blockRange.start + idx]}
             />
          ))}
          {props.scrubber && (
@@ -180,15 +210,15 @@ export const Gallery = (props: GalleryProps) => {
                onScrubStop={() => setIsScrubbing(false)}
             />
          )}
-         {selectedImage && (
+         {dialogItem && (
             <MediaDialog
-               id={selectedImage}
+               id={dialogItem}
                onClose={() => {
                   router.back();
                }}
                onChange={(id) => {
                   router.replace(`view:${id}`);
-                  setSelectedImage(id);
+                  setDialogItem(id);
                }}
             />
          )}

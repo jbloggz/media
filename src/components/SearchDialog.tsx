@@ -7,33 +7,38 @@
  */
 'use client';
 
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useAPI, useHashRouter, useNavBarIcons } from '@/hooks';
+import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useAPI } from '@/hooks';
 import { Map, MapCircle, Select } from '@/components';
 
 interface SearchDialogProps {
    filter: SearchFilter;
    setFilter: (f: SearchFilter) => void;
+   open: boolean;
+   onClose: () => void;
 }
 
-const searchReducer = (current: SearchFilter, filter: SearchFilter | null): SearchFilter => {
-   const newFilter = filter
-      ? {
-           ...current,
-           ...filter,
-        }
-      : {};
+interface SearchReducerAction {
+   action: 'set' | 'update';
+   filter: SearchFilter;
+}
+
+const searchReducer = (current: SearchFilter, value: SearchReducerAction): SearchFilter => {
+   const newFilter =
+      value.action === 'set'
+         ? value.filter
+         : {
+              ...current,
+              ...value.filter,
+           };
 
    /* Remove any undefined values */
    return Object.fromEntries(Object.entries(newFilter).filter(([_, value]) => value !== undefined));
 };
 
 export const SearchDialog = (props: SearchDialogProps) => {
-   const dialogRef = useRef<HTMLDialogElement>(null);
    const [activeTab, setActiveTab] = useState('general');
    const [filter, dispatchFilter] = useReducer(searchReducer, props.filter);
-   const router = useHashRouter((v) => !v && dialogRef.current && dialogRef.current.close());
 
    const typeQuery = useAPI<string[]>({ url: '/api/searchOptions?field=type' });
    const cameraQuery = useAPI<string[]>({ url: '/api/searchOptions?field=make,model' });
@@ -43,36 +48,21 @@ export const SearchDialog = (props: SearchDialogProps) => {
 
    const submit = useCallback(() => {
       props.setFilter(filter);
-      router.back();
-   }, [props, router, filter]);
+      props.onClose();
+   }, [props, filter]);
 
    const cancel = useCallback(() => {
       /* Reset back the previous search filter */
-      dispatchFilter(props.filter);
-      router.back();
-   }, [router, props]);
-
-   const show = useCallback(() => {
-      /* Show the modal, but make sure no inputs are focussed */
-      if (dialogRef.current) {
-         dialogRef.current.showModal();
-         router.push(`search`);
-         dialogRef.current.querySelectorAll('input').forEach((elem) => elem.blur());
-      }
-   }, [router]);
-
-   const reset = useCallback(() => {
-      /* Clear the filter */
-      dispatchFilter(null);
-      props.setFilter({});
+      dispatchFilter({ action: 'set', filter: props.filter });
+      props.onClose();
    }, [props]);
 
-   /* Set the navbar icons */
-   const icons = [{ elem: <MagnifyingGlassIcon />, onClick: show }];
-   if (Object.keys(props.filter).length > 0) {
-      icons.push({ elem: <XMarkIcon />, onClick: reset });
-   }
-   useNavBarIcons(icons);
+   /* Clear the filter if the filter prop is reset */
+   useEffect(() => {
+      if (Object.keys(props.filter).length == 0 && props.open) {
+         dispatchFilter({ action: 'set', filter: {} });
+      }
+   }, [props.filter, props.open]);
 
    /* Bind keyboard to actions */
    useEffect(() => {
@@ -90,7 +80,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
    }, [cancel]);
 
    return (
-      <dialog ref={dialogRef} className="modal">
+      <dialog className="modal" open={props.open}>
          <div className="modal-box flex flex-col w-full h-full max-h-full max-w-full md:max-w-2xl md:max-h-[750px]">
             <div className="container space-y-5 h-full flex flex-col">
                <h1 className="text-xl font-bold">Search</h1>
@@ -122,7 +112,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="path"
                            type="text"
                            value={filter.path || ''}
-                           onChange={(e) => dispatchFilter({ path: e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { path: e.target.value } })}
                            placeholder="Regular expression"
                            className="input input-bordered max-w-xs"
                         />
@@ -139,7 +129,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                         isMulti
                         options={typeOptions}
                         value={typeOptions.filter((v) => filter.type?.includes(v.value))}
-                        onChange={(v: readonly SelectOption[]) => dispatchFilter({ type: v.map((opt) => opt.value) })}
+                        onChange={(v: readonly SelectOption[]) => dispatchFilter({ action: 'update', filter: { type: v.map((opt) => opt.value) } })}
                      />
                   </div>
 
@@ -152,7 +142,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="durationMin"
                            type="number"
                            value={filter.durationMin || ''}
-                           onChange={(e) => dispatchFilter({ durationMin: +e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { durationMin: +e.target.value } })}
                            min={0}
                            placeholder="min"
                            className="input input-bordered max-w-32"
@@ -162,7 +152,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="durationMax"
                            type="number"
                            value={filter.durationMax || ''}
-                           onChange={(e) => dispatchFilter({ durationMax: +e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { durationMax: +e.target.value } })}
                            min={0}
                            placeholder="max"
                            className="input input-bordered max-w-32"
@@ -180,7 +170,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                         isMulti
                         options={cameraOptions}
                         value={cameraOptions.filter((v) => filter.camera?.includes(v.value))}
-                        onChange={(v: readonly SelectOption[]) => dispatchFilter({ camera: v.map((opt) => opt.value) })}
+                        onChange={(v: readonly SelectOption[]) => dispatchFilter({ action: 'update', filter: { camera: v.map((opt) => opt.value) } })}
                      />
                   </div>
                </div>
@@ -195,7 +185,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="heightMin"
                            type="number"
                            value={filter.heightMin || ''}
-                           onChange={(e) => dispatchFilter({ heightMin: +e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { heightMin: +e.target.value } })}
                            placeholder="min"
                            className="input input-bordered max-w-32"
                         />
@@ -204,7 +194,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="heightMax"
                            type="number"
                            value={filter.heightMax || ''}
-                           onChange={(e) => dispatchFilter({ heightMax: +e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { heightMax: +e.target.value } })}
                            placeholder="max"
                            className="input input-bordered max-w-32"
                         />
@@ -220,7 +210,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="widthMin"
                            type="number"
                            value={filter.widthMin || ''}
-                           onChange={(e) => dispatchFilter({ widthMin: +e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { widthMin: +e.target.value } })}
                            placeholder="min"
                            className="input input-bordered max-w-32"
                         />
@@ -229,7 +219,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="widthMax"
                            type="number"
                            value={filter.widthMax || ''}
-                           onChange={(e) => dispatchFilter({ widthMax: +e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { widthMax: +e.target.value } })}
                            placeholder="max"
                            className="input input-bordered max-w-32"
                         />
@@ -245,7 +235,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="sizeMin"
                            type="number"
                            value={filter.sizeMin || ''}
-                           onChange={(e) => dispatchFilter({ sizeMin: +e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { sizeMin: +e.target.value } })}
                            placeholder="min"
                            className="input input-bordered max-w-32"
                         />
@@ -254,7 +244,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                            name="sizeMax"
                            type="number"
                            value={filter.sizeMax || ''}
-                           onChange={(e) => dispatchFilter({ sizeMax: +e.target.value })}
+                           onChange={(e) => dispatchFilter({ action: 'update', filter: { sizeMax: +e.target.value } })}
                            placeholder="max"
                            className="input input-bordered max-w-32"
                         />
@@ -266,7 +256,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
                   {filter.location && (
                      <button
                         data-theme="light"
-                        onClick={() => dispatchFilter({ radius: undefined, location: undefined })}
+                        onClick={() => dispatchFilter({ action: 'update', filter: { radius: undefined, location: undefined } })}
                         className="google-map-btn absolute m-3 right-0 z-10"
                      >
                         Clear location
@@ -276,14 +266,14 @@ export const SearchDialog = (props: SearchDialogProps) => {
                      <Map
                         mapId={'SeachMap'}
                         center={filter.location || latestCoords.data}
-                        onClick={(pos) => !filter.location && dispatchFilter({ location: pos })}
+                        onClick={(pos) => !filter.location && dispatchFilter({ action: 'update', filter: { location: pos } })}
                      >
                         {filter.location && (
                            <MapCircle
                               center={filter.location}
                               radius={filter.radius}
                               editable
-                              onChange={(center, radius) => dispatchFilter({ location: center, radius: radius })}
+                              onChange={(center, radius) => dispatchFilter({ action: 'update', filter: { location: center, radius: radius } })}
                            />
                         )}
                      </Map>
