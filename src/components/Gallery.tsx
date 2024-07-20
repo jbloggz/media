@@ -36,6 +36,7 @@ interface GalleryProps {
    blocks: MediaBlock[];
    scrubber?: boolean;
    selectMode?: boolean;
+   setSelectedItems?: (items: Set<number>) => void;
 }
 
 export const Gallery = (props: GalleryProps) => {
@@ -56,12 +57,13 @@ export const Gallery = (props: GalleryProps) => {
          if (selectModeEnabled) {
             toggleSet(selectedItems[blockidx], id);
             setSelectedItems([...selectedItems]);
+            props.setSelectedItems && props.setSelectedItems(selectedItems.reduce((acc, currBlock) => acc.union(currBlock), new Set()));
          } else {
             router.push(`view:${id}`);
             setDialogItem(id);
          }
       },
-      [router, selectedItems, selectModeEnabled]
+      [router, selectedItems, selectModeEnabled, props]
    );
 
    /* Called when the user is scrubbing */
