@@ -6,9 +6,9 @@
  * Unit tests for ThumbnailImage.tsx
  */
 
+import { act } from 'react';
 import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
-import { act } from 'react';
 import { ThumbnailImage } from '.';
 
 describe('ThumbnailImage', () => {
@@ -90,4 +90,17 @@ describe('ThumbnailImage', () => {
       const duration = await component.findByText('00:00:00');
       expect(duration).toBeInTheDocument();
    });
+
+   it('should have a circle icon if selection mode is enabled', () => {
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image' }} onClick={jest.fn()} selectMode />);
+      const image = component.getAllByRole('img', { hidden: true })[1];
+      expect(image.nextElementSibling).toHaveClass('rounded-full');
+   });
+
+   it('should have a tick icon if selected', () => {
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image' }} onClick={jest.fn()} selectMode selected />);
+      const image = component.getAllByRole('img', { hidden: true })[1];
+      expect(image.nextElementSibling?.nextElementSibling?.tagName).toBe('svg');
+   });
+
 });

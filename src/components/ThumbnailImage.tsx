@@ -66,16 +66,16 @@ export const ThumbnailImage = (props: ThumbnailImageProps) => {
                   )}
                </>
             )}
+            {props.selectMode &&
+               (props.selected ? (
+                  <>
+                     <div className="w-5 h-5 bg-gray-300 border border-blue-400 left-1.5 top-1.5 absolute rounded-full" />
+                     <CheckCircleIcon className="w-6 h-6 absolute top-1 left-1 fill-blue-400 cursor-pointer" />
+                  </>
+               ) : (
+                  <div className="w-5 h-5 border border-gray-300 left-1.5 top-1.5 absolute rounded-full cursor-pointer" />
+               ))}
          </div>
-         {props.selectMode &&
-            (props.selected ? (
-               <>
-                  <div className="w-5 h-5 bg-gray-300 border border-blue-400 left-1.5 top-1.5 absolute rounded-full" />
-                  <CheckCircleIcon className="w-6 h-6 absolute top-1 left-1 fill-blue-400 cursor-pointer" />
-               </>
-            ) : (
-               <div className="w-5 h-5 border border-gray-300 left-1.5 top-1.5 absolute rounded-full cursor-pointer" />
-            ))}
       </div>
    );
 };

@@ -57,7 +57,7 @@ export const Gallery = (props: GalleryProps) => {
          if (selectModeEnabled) {
             toggleSet(selectedItems[blockidx], id);
             setSelectedItems([...selectedItems]);
-            props.setSelectedItems && props.setSelectedItems(selectedItems.reduce((acc, currBlock) => acc.union(currBlock), new Set()));
+            props.setSelectedItems && props.setSelectedItems(selectedItems.reduce((acc, currBlock) => new Set([...acc, ...currBlock]), new Set()));
          } else {
             router.push(`view:${id}`);
             setDialogItem(id);

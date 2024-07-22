@@ -7,7 +7,7 @@
  */
 
 import '@testing-library/jest-dom';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { act } from 'react';
 import { Scrubber } from '.';
 import { DraggableCore } from 'react-draggable';
@@ -373,5 +373,70 @@ describe('Scrubber', () => {
       });
       expect(onScrubStart).toHaveBeenCalledTimes(1);
       expect(component.container.querySelector('.opacity-0')).toBeInTheDocument();
+   });
+
+   it('should add/remove z-index when transition starts/ends', () => {
+      const blocks: MediaBlock[] = [
+         { heading: '2024-04-17', count: 10, total: 10 },
+         { heading: '2024-04-15', count: 5, total: 15 },
+         { heading: '2024-04-12', count: 34, total: 49 },
+         { heading: '2024-03-31', count: 21, total: 70 },
+      ];
+      const scrollPosition = 100;
+      const currentBlock = 0;
+      const onScrub = jest.fn();
+      const onScrubStart = jest.fn();
+      const onScrubStop = jest.fn();
+
+      const component = render(
+         <Scrubber
+            blocks={blocks}
+            scrollPosition={scrollPosition}
+            currentBlock={currentBlock}
+            onScrub={onScrub}
+            onScrubStart={onScrubStart}
+            onScrubStop={onScrubStop}
+         />
+      );
+      /* Re-render to make sure the refs are correct */
+      component.rerender(
+         <Scrubber
+            blocks={blocks}
+            scrollPosition={scrollPosition}
+            currentBlock={currentBlock}
+            onScrub={onScrub}
+            onScrubStart={onScrubStart}
+            onScrubStop={onScrubStop}
+         />
+      );
+
+      const startEvt = new Event('transitionstart') as TransitionEvent;
+      const endEvt = new Event('transitionend') as TransitionEvent;
+      const scrubber: HTMLDivElement = component.container.children[0] as HTMLDivElement;
+      expect(scrubber.classList).toContain('-z-10');
+      act(() => {
+         fireEvent(scrubber, startEvt);
+      });
+      act(() => {
+         fireEvent(scrubber, endEvt);
+      });
+      expect(scrubber.classList).toContain('-z-10');
+
+      act(() => {
+         (useThrottleFn as jest.Mock).mock.calls[1][0]();
+      });
+      act(() => {
+         (useIntervalFn as jest.Mock).mock.calls[3][0]();
+      });
+      expect(scrubber.classList).toContain('opacity-60');
+
+      act(() => {
+         fireEvent(scrubber, startEvt);
+      });
+      expect(scrubber.classList).not.toContain('-z-10');
+      act(() => {
+         fireEvent(scrubber, endEvt);
+      });
+      expect(scrubber.classList).not.toContain('-z-10');
    });
 });

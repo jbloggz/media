@@ -75,6 +75,22 @@ describe('Gallery', () => {
       expect(thumbnailBlocks.length).toBe(0);
    });
 
+   it('should handle blocks with no heading', () => {
+      const blocks: MediaBlock[] = [
+         { count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
+      ];
+
+      const component = render(<Gallery blocks={blocks} scrubber />);
+      /* Re-render to make sure the refs are correct */
+      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const renderedBlocks = getRenderedBlocks(component);
+
+      expect(component.getByRole('grid')).toBeInTheDocument();
+      expect(renderedBlocks).toEqual(blocks.slice(0, 1));
+   });
+
    it('should render the block that is scrubbed to', () => {
       const blocks: MediaBlock[] = [
          { heading: '2022-01-03', count: 5, total: 5 },
@@ -341,5 +357,34 @@ describe('Gallery', () => {
 
       expect((MediaDialog as jest.Mock).mock.lastCall?.[0].id).toEqual(431);
       expect(mocks.nextNavigation.router.replace).toHaveBeenCalledWith('#view:431');
+   });
+
+   it('should call setSelectedItems callback if in selectMode and item clicked', () => {
+      const blocks: MediaBlock[] = [
+         { heading: '2022-01-03', count: 5, total: 5 },
+         { heading: '2022-01-02', count: 3, total: 8 },
+         { heading: '2022-01-01', count: 7, total: 15 },
+      ];
+
+      const mockSetSelectedItems = jest.fn();
+      const component = render(<Gallery blocks={blocks} scrubber selectMode setSelectedItems={mockSetSelectedItems} />);
+      component.rerender(<Gallery blocks={blocks} scrubber selectMode setSelectedItems={mockSetSelectedItems} />);
+      act(() => {
+         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1234);
+      });
+
+      expect(mocks.nextNavigation.router.push).not.toHaveBeenCalledWith('#view:1234');
+      expect(mockSetSelectedItems).toHaveBeenCalledWith(new Set([1234]));
+      act(() => {
+         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1235);
+      });
+      act(() => {
+         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(123456);
+      });
+      expect(mockSetSelectedItems.mock.lastCall[0]).toEqual(new Set([1234, 1235, 123456]));
+      act(() => {
+         (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1235);
+      });
+      expect(mockSetSelectedItems.mock.lastCall[0]).toEqual(new Set([1234, 123456]));
    });
 });

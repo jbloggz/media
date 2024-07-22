@@ -27,6 +27,11 @@ describe('useHashRouter', () => {
       expect(result.current.hash).toBe('');
    });
 
+   it("should work event when window is not defined", () => {
+      const { result } = renderHook(() => useHashRouter());
+      expect(result.current.hash).toBe('');
+   });
+
    it("should set the 'hash' property to the current window location hash", () => {
       window.location.href = 'https://www.example.com#foobar';
       const { result } = renderHook(() => useHashRouter());

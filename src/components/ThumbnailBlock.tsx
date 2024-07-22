@@ -42,19 +42,19 @@ export const ThumbnailBlock = forwardRef<HTMLDivElement, ThumbnailBlockProps>(fu
 
    const items = props.block.items || api.data;
 
-   const onSelectAllClick = useCallback(() => {
+   const onSelectAllClick = useCallback((items: ThumbMeta[]) => {
       const select_all = props.selectedItems.size !== props.block.count;
-      for (const item of items || []) {
+      for (const item of items) {
          select_all !== props.selectedItems.has(item.id) && props.onItemClick(item.id);
       }
-   }, [items, props]);
+   }, [props]);
 
    return (
       <div ref={ref} className={props.className}>
          <div className="flex flex-row">
             {props.block.heading && <h1 className="text-xl font-bold p-2 flex-grow">{getBlockHeading(props.block.heading)}</h1>}
-            {props.selectMode && (
-               <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={onSelectAllClick}>
+            {props.selectMode && items && (
+               <button className="btn btn-circle opacity-70 hover:opacity-100" onClick={() => onSelectAllClick(items)}>
                   {props.selectedItems.size === props.block.count ? (
                      <CheckCircleIconSolid className="w-6 h-6 m-2 cursor-pointer" />
                   ) : (
