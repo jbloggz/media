@@ -33,16 +33,16 @@ describe('api/thumbmeta', () => {
 
       (db.query as jest.Mock).mockResolvedValue({
          rows: [
-            { type: 'image', id: '213', duration: null },
-            { type: 'video', id: '423', duration: '2352' },
+            { type: 'image', id: '213', duration: null, path: '/api/thumb?id=213' },
+            { type: 'video', id: '423', duration: '2352', path: '/api/thumb?id=423' },
          ],
       });
       const response = await GET(request as NextRequest);
       expect(response.status).toBe(200);
       expect(response.body).toBeDefined();
       expect(response.body).toEqual([
-         { type: 'image', id: 213, duration: 0 },
-         { type: 'video', id: 423, duration: 2352 },
+         { type: 'image', id: 213, duration: 0, path: '/api/thumb?id=213' },
+         { type: 'video', id: 423, duration: 2352, path: '/api/thumb?id=423' },
       ]);
    });
 
@@ -58,16 +58,16 @@ describe('api/thumbmeta', () => {
 
       (db.query as jest.Mock).mockResolvedValue({
          rows: [
-            { type: 'image', id: '213', duration: null },
-            { type: 'video', id: '423', duration: '2352' },
+            { type: 'image', id: '213', duration: null, path: '/api/thumb?id=213' },
+            { type: 'video', id: '423', duration: '2352', path: '/api/thumb?id=423' },
          ],
       });
       const response = await GET(request as NextRequest);
       expect(response.status).toBe(200);
       expect(response.body).toBeDefined();
       expect(response.body).toEqual([
-         { type: 'image', id: 213, duration: 0 },
-         { type: 'video', id: 423, duration: 2352 },
+         { type: 'image', id: 213, duration: 0, path: '/api/thumb?id=213' },
+         { type: 'video', id: 423, duration: 2352, path: '/api/thumb?id=423' },
       ]);
    });
 
@@ -82,16 +82,16 @@ describe('api/thumbmeta', () => {
 
       (db.query as jest.Mock).mockResolvedValue({
          rows: [
-            { type: 'image', id: '213', duration: null },
-            { type: 'video', id: '423', duration: '2352' },
+            { type: 'image', id: '213', duration: null, path: '/api/thumb?id=213' },
+            { type: 'video', id: '423', duration: '2352', path: '/api/thumb?id=423' },
          ],
       });
       const response = await GET(request as NextRequest);
       expect(response.status).toBe(200);
       expect(response.body).toBeDefined();
       expect(response.body).toEqual([
-         { type: 'image', id: 213, duration: 0 },
-         { type: 'video', id: 423, duration: 2352 },
+         { type: 'image', id: 213, duration: 0, path: '/api/thumb?id=213' },
+         { type: 'video', id: 423, duration: 2352, path: '/api/thumb?id=423' },
       ]);
    });
 
@@ -104,8 +104,8 @@ describe('api/thumbmeta', () => {
 
       (db.query as jest.Mock).mockResolvedValue({
          rows: [
-            { type: 'image', id: '213', duration: null },
-            { type: 'video', id: '423', duration: '2352' },
+            { type: 'image', id: '213', duration: null, path: '/api/thumb?id=213' },
+            { type: 'video', id: '423', duration: '2352', path: '/api/thumb?id=423' },
          ],
       });
       const response = await GET(request as NextRequest);

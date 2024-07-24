@@ -45,7 +45,7 @@ export const ThumbnailImage = (props: ThumbnailImageProps) => {
                <>
                   <Image
                      unoptimized={true}
-                     src={`/api/thumb?id=${props.meta.id}`}
+                     src={props.meta.path}
                      fill={true}
                      alt=""
                      sizes="100px"

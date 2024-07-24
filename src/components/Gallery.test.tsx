@@ -48,6 +48,8 @@ const getRenderedBlockElems = (component: RenderResult) => component.queryAllByT
 
 const getRenderedBlocks = (component: RenderResult) => getRenderedBlockElems(component).map((e) => JSON.parse(e.getAttribute('data-block') ?? '{}'));
 
+const mockFetchBlock = (_: MediaBlock): BlockResponse => ({});
+
 describe('Gallery', () => {
    it('should initially render the main section with the first ThumbnailBlock', () => {
       const blocks: MediaBlock[] = [
@@ -56,9 +58,9 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
       /* Re-render to make sure the refs are correct */
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
       const renderedBlocks = getRenderedBlocks(component);
 
       expect(component.getByRole('grid')).toBeInTheDocument();
@@ -66,7 +68,7 @@ describe('Gallery', () => {
    });
 
    it('should render an empty main section when no blocks are passed as props', () => {
-      const component = render(<Gallery blocks={[]} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={[]} scrubber />);
 
       const mainSection = component.getByRole('grid');
       const thumbnailBlocks = component.queryAllByRole('thumbnail-block');
@@ -82,9 +84,9 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
       /* Re-render to make sure the refs are correct */
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
       const renderedBlocks = getRenderedBlocks(component);
 
       expect(component.getByRole('grid')).toBeInTheDocument();
@@ -98,8 +100,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
 
       let renderedBlocks = getRenderedBlocks(component);
       expect(renderedBlocks).toHaveLength(1);
@@ -122,8 +124,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} />);
-      component.rerender(<Gallery blocks={blocks} />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} />);
 
       let renderedBlocks = getRenderedBlocks(component);
       expect(renderedBlocks).toHaveLength(1);
@@ -146,8 +148,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
 
       act(() => {
          (useThrottleFn as jest.Mock).mock.lastCall?.[0]();
@@ -164,8 +166,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
 
       act(() => {
          (useThrottleFn as jest.Mock).mock.lastCall?.[0]();
@@ -195,8 +197,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
 
       act(() => {
          (useThrottleFn as jest.Mock).mock.lastCall?.[0]();
@@ -226,8 +228,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
 
       act(() => {
          (Scrubber as jest.Mock).mock.lastCall?.[0].onScrubStart();
@@ -253,8 +255,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
 
       act(() => {
          (Scrubber as jest.Mock).mock.lastCall?.[0].onScrubStart();
@@ -274,8 +276,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
       act(() => {
          (useThrottleFn as jest.Mock).mock.lastCall?.[0]();
       });
@@ -306,8 +308,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
       act(() => {
          (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1234);
       });
@@ -323,8 +325,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
       act(() => {
          (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1234);
       });
@@ -342,8 +344,8 @@ describe('Gallery', () => {
          { heading: '2022-01-01', count: 7, total: 15 },
       ];
 
-      const component = render(<Gallery blocks={blocks} scrubber />);
-      component.rerender(<Gallery blocks={blocks} scrubber />);
+      const component = render(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber />);
       act(() => {
          (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1234);
       });
@@ -367,8 +369,10 @@ describe('Gallery', () => {
       ];
 
       const mockSetSelectedItems = jest.fn();
-      const component = render(<Gallery blocks={blocks} scrubber selectMode setSelectedItems={mockSetSelectedItems} />);
-      component.rerender(<Gallery blocks={blocks} scrubber selectMode setSelectedItems={mockSetSelectedItems} />);
+      const component = render(
+         <Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber selectMode setSelectedItems={mockSetSelectedItems} />
+      );
+      component.rerender(<Gallery useFetchBlock={mockFetchBlock} blocks={blocks} scrubber selectMode setSelectedItems={mockSetSelectedItems} />);
       act(() => {
          (MockThumbnailBlock as jest.Mock).mock.lastCall?.[0].onItemClick(1234);
       });

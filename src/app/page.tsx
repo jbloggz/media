@@ -14,6 +14,13 @@ import { Gallery, Loader, SearchDialog } from '@/components';
 import { SearchContext } from '@/context';
 import { useNavBarIcons, useSearchAPI, useToggle } from '@/hooks';
 
+const useFetchBlock = (block: MediaBlock) => {
+   return useSearchAPI<ThumbMeta[]>({
+      url: '/api/thumbmeta',
+      params: { day: block.heading || '' },
+   });
+};
+
 const Home = () => {
    const [filter, setFilter] = useState<SearchFilter>({});
    const api = useSearchAPI<MediaBlock[]>({ url: '/api/block', filter });
@@ -41,7 +48,7 @@ const Home = () => {
    return (
       <Loader {...api}>
          <SearchContext.Provider value={filter}>
-            <Gallery blocks={api.data || []} scrubber selectMode={selectMode.enabled} />
+            <Gallery blocks={api.data || []} useFetchBlock={useFetchBlock} scrubber selectMode={selectMode.enabled} setSelectedItems={() => {}} />
          </SearchContext.Provider>
          <SearchDialog filter={filter} setFilter={setFilter} open={showSearch.enabled} onClose={showSearch.toggle} />
       </Loader>

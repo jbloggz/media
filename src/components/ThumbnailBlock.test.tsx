@@ -10,12 +10,8 @@ import { act, createRef } from 'react';
 import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
 import { ThumbnailBlock } from '.';
-import * as useSearchAPI from '../hooks/useSearchAPI';
-import { APIError } from '@/hooks';
 import mocks from '@/mocks';
 
-jest.mock('../hooks/useSearchAPI');
-const mockUseSeachAPI = jest.spyOn(useSearchAPI, 'useSearchAPI');
 jest.mock('./ThumbnailImage', () => ({
    ThumbnailImage: () => <div data-testid="MockThumbnailImage"></div>,
 }));
@@ -25,9 +21,17 @@ describe('ThumbnailBlock', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
       const block: MediaBlock = { heading: '2024-03-27', count: 10, total: 83 };
-
-      mockUseSeachAPI.mockReturnValue({ isLoading: false, data: [], error: undefined, mutate: jest.fn(), isValidating: false });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
+      const mockFetchBlock = (_: MediaBlock): BlockResponse => ({ data: [] });
+      const component = render(
+         <ThumbnailBlock
+            block={block}
+            useFetchBlock={mockFetchBlock}
+            className={className}
+            ref={ref}
+            selectedItems={new Set()}
+            onItemClick={jest.fn()}
+         />
+      );
 
       expect(component.container.querySelector('div')).toHaveClass(className);
       expect(ref.current).toBeInTheDocument();
@@ -37,19 +41,36 @@ describe('ThumbnailBlock', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
       const block: MediaBlock = { count: 10, total: 83 };
-      mockUseSeachAPI.mockReturnValue({ isLoading: false, data: [], error: undefined, mutate: jest.fn(), isValidating: false });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
+      const mockFetchBlock = (_: MediaBlock): BlockResponse => ({ data: [] });
+      const component = render(
+         <ThumbnailBlock
+            block={block}
+            useFetchBlock={mockFetchBlock}
+            className={className}
+            ref={ref}
+            selectedItems={new Set()}
+            onItemClick={jest.fn()}
+         />
+      );
       expect(component.container.querySelector('div')).toHaveClass(className);
       expect(ref.current).toBeInTheDocument();
    });
 
-   it('should render the number of thumbnails in the props block count if the api is loading', () => {
+   it('should render the number of thumbnails in the props block count if the data is undefined', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
       const block: MediaBlock = { heading: '2024-03-27', count: 10, total: 83 };
-
-      mockUseSeachAPI.mockReturnValue({ isLoading: true, data: null, error: undefined, mutate: jest.fn(), isValidating: false });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
+      const mockFetchBlock = (_: MediaBlock): BlockResponse => ({});
+      const component = render(
+         <ThumbnailBlock
+            block={block}
+            useFetchBlock={mockFetchBlock}
+            className={className}
+            ref={ref}
+            selectedItems={new Set()}
+            onItemClick={jest.fn()}
+         />
+      );
 
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(10);
    });
@@ -58,19 +79,23 @@ describe('ThumbnailBlock', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
       const block: MediaBlock = { heading: '2024-03-27', count: 10, total: 83 };
-
-      mockUseSeachAPI.mockReturnValue({
-         isLoading: false,
+      const mockFetchBlock = (_: MediaBlock): BlockResponse => ({
          data: [
             { id: 123, type: 'image' },
             { id: 435, type: 'image' },
             { id: 235, type: 'video', duration: 361 },
          ],
-         error: undefined,
-         mutate: jest.fn(),
-         isValidating: false,
       });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
+      const component = render(
+         <ThumbnailBlock
+            block={block}
+            useFetchBlock={mockFetchBlock}
+            className={className}
+            ref={ref}
+            selectedItems={new Set()}
+            onItemClick={jest.fn()}
+         />
+      );
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(3);
    });
 
@@ -79,16 +104,19 @@ describe('ThumbnailBlock', () => {
       const ref = createRef<HTMLDivElement>();
       const block: MediaBlock = { heading: '2024-03-27', count: 8, total: 83 };
 
-      mockUseSeachAPI.mockReturnValue({
-         isLoading: false,
-         data: null,
-         error: new APIError('Oh no!!', 400),
-         mutate: jest.fn(),
-         isValidating: false,
-      });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
+      const mockFetchBlock = (_: MediaBlock): BlockResponse => ({ error: new Error('Oh no!!') });
+      const component = render(
+         <ThumbnailBlock
+            block={block}
+            useFetchBlock={mockFetchBlock}
+            className={className}
+            ref={ref}
+            selectedItems={new Set()}
+            onItemClick={jest.fn()}
+         />
+      );
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(8);
-      expect(mocks.reactToastify.toast.error).toHaveBeenCalledWith('Oh no!!');
+      expect((mocks.reactToastify.toast.error as jest.Mock).mock.lastCall[0]).toBe('Oh no!!');
    });
 
    it("should call toast with default message on an API error that doesn't have a message", () => {
@@ -96,36 +124,44 @@ describe('ThumbnailBlock', () => {
       const ref = createRef<HTMLDivElement>();
       const block: MediaBlock = { heading: '2024-03-27', count: 8, total: 83 };
 
-      mockUseSeachAPI.mockReturnValue({
-         isLoading: false,
-         data: null,
-         error: new APIError('', 400),
-         mutate: jest.fn(),
-         isValidating: false,
-      });
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set()} onItemClick={jest.fn()} />);
+      const mockFetchBlock = (_: MediaBlock): BlockResponse => ({ error: new Error() });
+      const component = render(
+         <ThumbnailBlock
+            block={block}
+            useFetchBlock={mockFetchBlock}
+            className={className}
+            ref={ref}
+            selectedItems={new Set()}
+            onItemClick={jest.fn()}
+         />
+      );
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(8);
-      expect(mocks.reactToastify.toast.error).toHaveBeenCalledWith('Unknown error occurred');
+      expect((mocks.reactToastify.toast.error as jest.Mock).mock.lastCall[0]).toBe('Unknown error occurred');
    });
 
-   it("should call the onClick handler for all items ith e select all is clicked", () => {
+   it('should call the onClick handler for all items ith e select all is clicked', () => {
       const className = 'test-class';
       const ref = createRef<HTMLDivElement>();
       const block: MediaBlock = { heading: '2024-03-27', count: 3, total: 83 };
-
-      mockUseSeachAPI.mockReturnValue({
-         isLoading: false,
+      const mockOnItemClick = jest.fn();
+      const mockFetchBlock = (_: MediaBlock): BlockResponse => ({
          data: [
             { id: 123, type: 'image' },
             { id: 435, type: 'image' },
             { id: 235, type: 'video', duration: 361 },
          ],
-         error: undefined,
-         mutate: jest.fn(),
-         isValidating: false,
       });
-      const mockOnItemClick = jest.fn();
-      const component = render(<ThumbnailBlock block={block} className={className} ref={ref} selectedItems={new Set([123, 435, 235])} onItemClick={mockOnItemClick} selectMode />);
+      const component = render(
+         <ThumbnailBlock
+            block={block}
+            useFetchBlock={mockFetchBlock}
+            className={className}
+            ref={ref}
+            selectedItems={new Set([123, 435, 235])}
+            onItemClick={mockOnItemClick}
+            selectMode
+         />
+      );
       expect(component.getAllByTestId('MockThumbnailImage')).toHaveLength(3);
       const selectAllButton = component.getByRole('button');
       act(() => {
@@ -133,5 +169,4 @@ describe('ThumbnailBlock', () => {
       });
       expect(mockOnItemClick).toHaveBeenCalledTimes(3);
    });
-
 });

@@ -16,9 +16,6 @@ interface MediaBlock {
 
    /* The cumulative sum of the number of items */
    total: number;
-
-   /* The items in the block, if already retrieved */
-   items?: ThumbMeta[];
 }
 
 /* GPS coordinates */
@@ -32,14 +29,26 @@ interface GpsCoord {
 
 /* Metadata for a thumbnail */
 interface ThumbMeta {
-   /* The id of the media */
+   /* The id of the media item this thumbnail is associated to */
    id: number;
+
+   /* The API path to download the thumbnail */
+   path: string;
 
    /* The media type */
    type: 'image' | 'video';
 
    /* The video duration in milliseconds */
    duration?: number;
+}
+
+/* A response containing block items */
+interface BlockResponse {
+   /* The data contianed in the response */
+   data?: ThumbMeta[];
+
+   /* An error if the response failed */
+   error?: Error,
 }
 
 /* Search filters for the gallery */

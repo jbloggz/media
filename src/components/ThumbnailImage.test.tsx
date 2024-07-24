@@ -20,7 +20,7 @@ describe('ThumbnailImage', () => {
    });
 
    it('should render the image if meta is provided', () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image' }} />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image', path: '/api/thumb?id=1234' }} />);
       const images = component.getAllByRole('img', { hidden: true });
       expect(images).toHaveLength(2);
       expect(images[0].tagName.toLowerCase()).toEqual('svg');
@@ -29,7 +29,7 @@ describe('ThumbnailImage', () => {
    });
 
    it('should render an overlay for videos', () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video', duration: 345 }} />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video', duration: 345, path: '/api/thumb?id=1234' }} />);
       const images = component.getAllByRole('img', { hidden: true });
       expect(images).toHaveLength(3);
       expect(images[0].tagName.toLowerCase()).toEqual('svg');
@@ -39,7 +39,7 @@ describe('ThumbnailImage', () => {
    });
 
    it('should render an overlay when noOverlay prop is passed', () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video', duration: 345 }} noOverlay />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video', duration: 345, path: '/api/thumb?id=1234' }} noOverlay />);
       const images = component.getAllByRole('img', { hidden: true });
       expect(images).toHaveLength(2);
       expect(images[0].tagName.toLowerCase()).toEqual('svg');
@@ -48,7 +48,7 @@ describe('ThumbnailImage', () => {
    });
 
    it('should allow undefined duration for videos', () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video' }} />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video', path: '/api/thumb?id=1234' }} />);
       const images = component.getAllByRole('img', { hidden: true });
       expect(images).toHaveLength(3);
       expect(images[0].tagName.toLowerCase()).toEqual('svg');
@@ -58,20 +58,20 @@ describe('ThumbnailImage', () => {
    });
 
    it('should have a pointer cursor if an onClick handler is defined', () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image' }} onClick={jest.fn()} />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image', path: '/api/thumb?id=1234' }} onClick={jest.fn()} />);
       const image = component.getAllByRole('img', { hidden: true })[1];
       expect(image).toHaveClass('cursor-pointer');
    });
 
    it('should not have a pointer cursor if an onClick handler is not defined', () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image' }} />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image', path: '/api/thumb?id=1234' }} />);
       const image = component.getAllByRole('img', { hidden: true })[1];
       expect(image).not.toHaveClass('cursor-pointer');
    });
 
    it('should call onClick handler when the image is clicked', () => {
       const onClick = jest.fn();
-      const component = render(<ThumbnailImage meta={{ id: 6745, type: 'image' }} onClick={onClick} />);
+      const component = render(<ThumbnailImage meta={{ id: 6745, type: 'image', path: '/api/thumb?id=6745' }} onClick={onClick} />);
       const container = component.container.children[0] as HTMLElement;
       act(() => {
          container.click();
@@ -80,27 +80,28 @@ describe('ThumbnailImage', () => {
    });
 
    it('correctly renders the duration', async () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video', duration: 7362000 }} />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video', duration: 7362000, path: '/api/thumb?id=1234' }} />);
       const duration = await component.findByText('02:02:42');
       expect(duration).toBeInTheDocument();
    });
 
    it('correctly renders undefined duration', async () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video' }} />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'video', path: '/api/thumb?id=1234' }} />);
       const duration = await component.findByText('00:00:00');
       expect(duration).toBeInTheDocument();
    });
 
    it('should have a circle icon if selection mode is enabled', () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image' }} onClick={jest.fn()} selectMode />);
+      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image', path: '/api/thumb?id=1234' }} onClick={jest.fn()} selectMode />);
       const image = component.getAllByRole('img', { hidden: true })[1];
       expect(image.nextElementSibling).toHaveClass('rounded-full');
    });
 
    it('should have a tick icon if selected', () => {
-      const component = render(<ThumbnailImage meta={{ id: 1234, type: 'image' }} onClick={jest.fn()} selectMode selected />);
+      const component = render(
+         <ThumbnailImage meta={{ id: 1234, type: 'image', path: '/api/thumb?id=1234' }} onClick={jest.fn()} selectMode selected />
+      );
       const image = component.getAllByRole('img', { hidden: true })[1];
       expect(image.nextElementSibling?.nextElementSibling?.tagName).toBe('svg');
    });
-
 });

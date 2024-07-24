@@ -34,6 +34,7 @@ interface DisplayRange {
 
 interface GalleryProps {
    blocks: MediaBlock[];
+   useFetchBlock: (block: MediaBlock) => BlockResponse;
    scrubber?: boolean;
    selectMode?: boolean;
    setSelectedItems?: (items: Set<number>) => void;
@@ -194,6 +195,7 @@ export const Gallery = (props: GalleryProps) => {
                key={block.heading || idx}
                className={'pb-6'}
                block={block}
+               useFetchBlock={props.useFetchBlock}
                ref={(elem) => {
                   blockRef.current[blockRange.start + idx] = elem;
                }}

@@ -90,4 +90,26 @@ describe('Home', () => {
       });
       expect((Gallery as jest.Mock).mock.lastCall[0].selectMode).toBe(false);
    });
+
+   it('should be able to call setSelectedItems on Gallery', () => {
+      mockUseSeachAPI.mockReturnValue({ isLoading: false, data: null, error: undefined, mutate: jest.fn(), isValidating: false });
+      render(<Home />);
+      act(() => {
+         (Gallery as jest.Mock).mock.lastCall[0].setSelectedItems(new Set([1, 2, 3]));
+      });
+   });
+
+   it('should be passed a useFetchBlock that calls useSearchApi', () => {
+      mockUseSeachAPI.mockReturnValue({ isLoading: false, data: null, error: undefined, mutate: jest.fn(), isValidating: false });
+      render(<Home />);
+      const ncalls = mockUseSeachAPI.mock.calls.length;
+      act(() => {
+         (Gallery as jest.Mock).mock.lastCall[0].useFetchBlock({heading: 'foo'});
+      });
+      expect(mockUseSeachAPI.mock.calls.length).toBe(ncalls + 1);
+      act(() => {
+         (Gallery as jest.Mock).mock.lastCall[0].useFetchBlock({heading: ''});
+      });
+      expect(mockUseSeachAPI.mock.calls.length).toBe(ncalls + 2);
+   });
 });

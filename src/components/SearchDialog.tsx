@@ -66,6 +66,9 @@ export const SearchDialog = (props: SearchDialogProps) => {
 
    /* Bind keyboard to actions */
    useEffect(() => {
+      if (!props.open) {
+         return;
+      }
       const handleKeyPress = (event: KeyboardEvent) => {
          if (event.key === 'Escape') {
             cancel();
@@ -77,7 +80,7 @@ export const SearchDialog = (props: SearchDialogProps) => {
       return () => {
          document.removeEventListener('keydown', handleKeyPress);
       };
-   }, [cancel]);
+   }, [cancel, props.open]);
 
    return (
       <dialog className="modal" open={props.open}>
